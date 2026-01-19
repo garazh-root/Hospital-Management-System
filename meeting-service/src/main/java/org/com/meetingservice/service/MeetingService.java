@@ -44,7 +44,7 @@ public class MeetingService {
         doctorValidation.checkDoctorSchedule(doctor, bookingRequest.getMeetingStartTime(), bookingRequest.getMeetingEndTime());
 
         doctorValidation.checkDoctorAvailability(
-                UUID.fromString(bookingRequest.getDoctorId()), bookingRequest.getMeetingStartTime(), bookingRequest.getMeetingEndTime());
+                bookingRequest.getDoctorId(), bookingRequest.getMeetingStartTime(), bookingRequest.getMeetingEndTime());
         patientValidation.checkPatientAvailability(
                 bookingRequest.getPatientId(), bookingRequest.getMeetingStartTime(), bookingRequest.getMeetingEndTime()
         );
@@ -78,7 +78,7 @@ public class MeetingService {
         DoctorResponseDTO doctorResponse = doctorClient.getDoctorById(meeting.getDoctorId().toString());
 
         doctorValidation.checkDoctorAvailability(
-                UUID.fromString(doctorResponse.getId()), updateRequest.getStartTime(), updateRequest.getEndTime());
+                doctorResponse.getId(), updateRequest.getStartTime(), updateRequest.getEndTime());
 
         meeting.setDate(updateRequest.getDate());
         meeting.setStartTime(updateRequest.getStartTime());
@@ -98,7 +98,7 @@ public class MeetingService {
                 () -> new MeetingNotFoundException(MeetingServiceMessages.MEETING_NOT_FOUND.getMessage())
         );
 
-        if(meeting.getStatus() ==  MeetingStatus.CANCELLED) {
+        if(meeting.getStatus() == MeetingStatus.CANCELLED) {
             throw new MeetingConflictException(MeetingServiceMessages.MEETING_CONFLICT.getMessage());
         }
 

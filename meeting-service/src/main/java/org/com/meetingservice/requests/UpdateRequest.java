@@ -3,12 +3,18 @@ package org.com.meetingservice.requests;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.com.meetingservice.additional.MeetingStatus;
 
 import java.time.Instant;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class UpdateRequest {
 
     @NotNull(message = "Date is required")

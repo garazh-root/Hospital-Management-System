@@ -7,9 +7,7 @@ import org.com.meetingservice.dto.DoctorResponseDTO;
 import org.com.meetingservice.dto.MeetingResponse;
 import org.com.meetingservice.dto.PatientResponseDTO;
 import org.com.meetingservice.dto.ScheduleResponseDTO;
-import org.com.meetingservice.exception.InvalidMeetingException;
-import org.com.meetingservice.exception.InvalidStatusException;
-import org.com.meetingservice.exception.ScheduleNotAvailableException;
+import org.com.meetingservice.exception.*;
 import org.com.meetingservice.model.Meeting;
 import org.com.meetingservice.repository.MeetingRepository;
 import org.com.meetingservice.requests.BookingRequest;
@@ -26,6 +24,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.*;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -57,9 +56,11 @@ public class MeetingServiceTest {
     private DoctorResponseDTO doctorResponseDTO;
     private PatientResponseDTO patientResponseDTO;
     private UpdateRequest updateRequest;
+    private Meeting testMeeting;
 
     @BeforeEach
     void setUp() {
+        String meetingId = "6966b86415de9141342edb20";
         String doctorId = UUID.randomUUID().toString();
         String patientId = UUID.randomUUID().toString();
 
@@ -134,18 +135,8 @@ public class MeetingServiceTest {
                 .address("Alexey 23 apt.5")
                 .status("ACTIVE")
                 .build();
-    }
 
-    @Test
-    void bookMeetingShouldCreateMeeting() {
-        String meetingId = "6966b86415de9141342edb20";
-
-        when(doctorClient.getDoctorById(bookingRequest.getDoctorId()))
-                .thenReturn(doctorResponseDTO);
-        when(patientClient.getPatientById(bookingRequest.getPatientId()))
-                .thenReturn(patientResponseDTO);
-
-        Meeting meeting = Meeting.builder()
+        this.testMeeting = Meeting.builder()
                 .id(meetingId)
                 .doctorId(UUID.fromString(doctorResponseDTO.getId()))
                 .patientId(UUID.fromString(patientResponseDTO.getId()))
@@ -161,7 +152,38 @@ public class MeetingServiceTest {
                 .notes("Test")
                 .build();
 
-        when(meetingRepository.save(any(Meeting.class))).thenReturn(meeting);
+        LocalDate updateRequestDate = LocalDate.of(2026, 2, 3);
+
+        Instant updatedMeetingDate = updateRequestDate.
+                atStartOfDay(ZoneId.systemDefault()).toInstant();
+
+        Instant updatedStartTime = updateRequestDate
+                .atTime(14, 30)
+                .atZone(ZoneId.systemDefault()).toInstant();
+
+        Instant updatedEndTIme = updateRequestDate
+                .atTime(15, 0)
+                .atZone(ZoneId.systemDefault()).toInstant();
+
+        this.updateRequest = UpdateRequest.builder()
+                .date(updatedMeetingDate)
+                .startTime(updatedStartTime)
+                .endTime(updatedEndTIme)
+                .status(MeetingStatus.CONFIRMED)
+                .build();
+
+
+    }
+
+    @Test
+    void bookMeetingShouldCreateMeeting() {
+
+        when(doctorClient.getDoctorById(bookingRequest.getDoctorId()))
+                .thenReturn(doctorResponseDTO);
+        when(patientClient.getPatientById(bookingRequest.getPatientId()))
+                .thenReturn(patientResponseDTO);
+
+        when(meetingRepository.save(any(Meeting.class))).thenReturn(testMeeting);
 
         MeetingResponse response = meetingService.createMeeting(bookingRequest);
 
@@ -235,30 +257,8 @@ public class MeetingServiceTest {
 
     @Test
     void bookMeetingShouldNotCreateIfScheduleConflictOccurs() {
-        LocalDate meetingDate = LocalDate.of(2026, 2, 3);
-
-        Instant meetingStartTime = meetingDate
-                .atTime(8, 0)
-                .atZone(ZoneId.systemDefault())
-                .toInstant();
-
-        Instant meetingEndTime = meetingDate
-                .atTime(9, 0)
-                .atZone(ZoneId.systemDefault())
-                .toInstant();
-
-        Instant meetingActualDate = meetingDate
-                .atStartOfDay(ZoneId.systemDefault())
-                .toInstant();
-
-        BookingRequest invalidRequest = BookingRequest.builder()
-                .doctorId(doctorResponseDTO.getId())
-                .patientId(patientResponseDTO.getId())
-                .meetingStartTime(meetingStartTime)
-                .meetingEndTime(meetingEndTime)
-                .meetingDate(meetingActualDate)
-                .notes("Test")
-                .build();
+        bookingRequest.setMeetingStartTime(Instant.parse("2026-02-01T08:00:00Z"));
+        bookingRequest.setMeetingEndTime(Instant.parse("2026-02-01T09:00:00Z"));
 
         when(doctorClient.getDoctorById(bookingRequest.getDoctorId()))
                 .thenReturn(doctorResponseDTO);
@@ -269,53 +269,19 @@ public class MeetingServiceTest {
         doThrow(ScheduleNotAvailableException.class)
                 .when(doctorValidation)
                 .checkDoctorSchedule(
-                        doctorResponseDTO, invalidRequest.getMeetingStartTime(), invalidRequest.getMeetingEndTime());
+                        doctorResponseDTO, bookingRequest.getMeetingStartTime(), bookingRequest.getMeetingEndTime());
 
         Assertions.assertThrows(ScheduleNotAvailableException.class, () -> {
-            meetingService.createMeeting(invalidRequest);
+            meetingService.createMeeting(bookingRequest);
         });
 
         verify(meetingRepository, never()).save(any(Meeting.class));
     }
 
     @Test
-    void bookMeetingShouldNotCreateIfMeetingStartTimeIsOnDoctorBreakTime() {
-        LocalDate meetingDate = LocalDate.of(2026, 2, 5);
-
-        Instant meetingStartTime = meetingDate
-                .atTime(12, 0)
-                .atZone(ZoneId.systemDefault())
-                .toInstant();
-
-        Instant meetingEndTime = meetingDate
-                .atTime(13, 0)
-                .atZone(ZoneId.systemDefault())
-                .toInstant();
-
-        Instant actualMeetingDate = meetingDate
-                .atStartOfDay(ZoneId.systemDefault())
-                .toInstant();
-
-        ScheduleResponseDTO doctorSchedule = ScheduleResponseDTO.builder()
-                .scheduleStartTime("09:00:00")
-                .scheduleEndTime("17:00:00")
-                .scheduleDate("2026-02-05")
-                .breakStartTime("12:00:00")
-                .breakEndTime("13:00:00")
-                .dayOfWeek("MONDAY")
-                .isDayOff("false")
-                .build();
-
-        doctorResponseDTO.setSchedulesList(List.of(doctorSchedule));
-
-        BookingRequest invalidRequest = BookingRequest.builder()
-                .doctorId(doctorResponseDTO.getId())
-                .patientId(patientResponseDTO.getId())
-                .meetingStartTime(meetingStartTime)
-                .meetingEndTime(meetingEndTime)
-                .meetingDate(actualMeetingDate)
-                .notes("Test")
-                .build();
+    void bookMeetingShouldNotCreateIfMeetingStartTimeIsBetweenBreakTime() {
+        bookingRequest.setMeetingStartTime(Instant.parse("2026-02-01T12:00:00Z"));
+        bookingRequest.setMeetingEndTime(Instant.parse("2026-02-01T13:00:00Z"));
 
         when(doctorClient.getDoctorById(bookingRequest.getDoctorId()))
                 .thenReturn(doctorResponseDTO);
@@ -323,14 +289,200 @@ public class MeetingServiceTest {
         when(patientClient.getPatientById(bookingRequest.getPatientId()))
                 .thenReturn(patientResponseDTO);
 
+        doNothing().when(doctorValidation).checkDoctorStatus(doctorResponseDTO);
+        doNothing().when(patientValidation).checkPatientStatus(patientResponseDTO);
+
         doThrow(InvalidMeetingException.class)
                 .when(doctorValidation)
-                .checkDoctorSchedule(doctorResponseDTO, invalidRequest.getMeetingStartTime(), invalidRequest.getMeetingEndTime());
+                .checkDoctorSchedule(doctorResponseDTO, bookingRequest.getMeetingStartTime(), bookingRequest.getMeetingEndTime());
 
         Assertions.assertThrows(InvalidMeetingException.class, () -> {
-            meetingService.createMeeting(invalidRequest);
+            meetingService.createMeeting(bookingRequest);
         });
 
+        verify(meetingRepository, never()).save(any(Meeting.class));
+    }
+
+    @Test
+    void bookMeetingShouldNotCreateIfDoctorIsNotAvailable() {
+        bookingRequest.setMeetingStartTime(Instant.parse("2026-02-01T09:30:00Z"));
+        bookingRequest.setMeetingEndTime(Instant.parse("2026-02-01T10:30:00Z"));
+
+        doNothing().when(doctorValidation).checkDoctorStatus(doctorResponseDTO);
+        doNothing().when(patientValidation).checkPatientStatus(patientResponseDTO);
+        doNothing().when(doctorValidation).checkDoctorSchedule(
+                doctorResponseDTO, bookingRequest.getMeetingStartTime(), bookingRequest.getMeetingEndTime()
+        );
+
+        doThrow(MeetingConflictException.class)
+                .when(doctorValidation)
+                .checkDoctorAvailability(
+                        bookingRequest.getDoctorId(), bookingRequest.getMeetingStartTime(), bookingRequest.getMeetingEndTime());
+
+        Assertions.assertThrows(MeetingConflictException.class, () -> {
+            meetingService.createMeeting(bookingRequest);
+        });
+
+        verify(meetingRepository, never()).save(any(Meeting.class));
+    }
+
+    @Test
+    void getMeetingByPatientIdShouldReturnMeeting() {
+        UUID patientId = UUID.fromString(patientResponseDTO.getId());
+
+        when(meetingRepository.findByPatientId(patientId)).thenReturn(List.of(testMeeting));
+
+        List<MeetingResponse> listOfMeetingResponses = meetingService.findByPatientId(patientId);
+        MeetingResponse testResponse = listOfMeetingResponses.getFirst();
+
+        Assertions.assertNotNull(listOfMeetingResponses);
+        Assertions.assertEquals(testResponse.getPatient().getId(), patientId.toString());
+        Assertions.assertEquals(testResponse.getPatient().getFirstName(), patientResponseDTO.getFirstName());
+        Assertions.assertEquals(testResponse.getPatient().getLastName(), patientResponseDTO.getLastName());
+    }
+
+    @Test
+    void getMeetingByPatientIdShouldReturnEmptyListWhenNoMeetingIsFound() {
+        UUID patientId = UUID.fromString(patientResponseDTO.getId());
+
+        when(meetingRepository.findByPatientId(patientId)).thenReturn(List.of());
+
+        verify(meetingRepository, never()).findByPatientId(patientId);
+    }
+
+    @Test
+    void getMeetingByDoctorIdShouldReturnMeeting() {
+        UUID doctorId = UUID.fromString(doctorResponseDTO.getId());
+
+        when(meetingRepository.findByDoctorId(doctorId)).thenReturn(List.of(testMeeting));
+
+        List<MeetingResponse> listOfMeetingResponses = meetingService.findByDoctorId(doctorId);
+        MeetingResponse testResponse = listOfMeetingResponses.getFirst();
+
+        Assertions.assertNotNull(listOfMeetingResponses);
+        Assertions.assertEquals(testResponse.getDoctor().getId(), doctorId.toString());
+        Assertions.assertEquals(testResponse.getDoctor().getFirstName(), doctorResponseDTO.getFirstName());
+        Assertions.assertEquals(testResponse.getDoctor().getLastName(), doctorResponseDTO.getLastName());
+    }
+
+    @Test
+    void getMeetingByDoctorIdShouldReturnEmptyListWhenNoMeetingIsFound() {
+        UUID doctorId = UUID.fromString(doctorResponseDTO.getId());
+
+        when(meetingRepository.findByDoctorId(doctorId)).thenReturn(List.of());
+
+        verify(meetingRepository, never()).findByDoctorId(doctorId);
+    }
+
+    @Test
+    void getMeetingByStatusShouldReturnMeeting() {
+        MeetingStatus status = MeetingStatus.CONFIRMED;
+
+        when(meetingRepository.findByStatus(status)).thenReturn(List.of(testMeeting));
+
+        List<MeetingResponse> listOfMeetingResponses = meetingService.findByStatus(status);
+        MeetingResponse testResponse = listOfMeetingResponses.getFirst();
+
+        Assertions.assertNotNull(listOfMeetingResponses);
+        Assertions.assertEquals(testResponse.getMeetingStatus(),  status.toString());
+    }
+
+    @Test
+    void getMeetingByStatusShouldReturnEmptyListWhenNoMeetingIsFound() {
+        MeetingStatus status = MeetingStatus.COMPLETED;
+
+        when(meetingRepository.findByStatus(status)).thenReturn(List.of());
+
+        verify(meetingRepository, never()).findByStatus(status);
+    }
+
+    @Test
+    void updateMeetingShouldSuccessfullyUpdateMeeting() {
+        String meetingId = testMeeting.getId();
+
+        when(meetingRepository.findById(meetingId)).thenReturn(Optional.of(testMeeting));
+        when(doctorClient.getDoctorById(testMeeting.getDoctorId().toString()))
+                .thenReturn(doctorResponseDTO);
+
+        when(meetingRepository.save(any(Meeting.class))).thenReturn(testMeeting);
+
+        MeetingResponse meetingResponse = meetingService.updateMeeting(meetingId, updateRequest);
+
+        Assertions.assertNotNull(meetingResponse);
+
+        verify(meetingRepository).save(any(Meeting.class));
+    }
+
+    @Test
+    void updateMeetingShouldNotUpdateIfMeetingIsNotFound() {
+        String meetingId = "";
+
+        when(meetingRepository.findById(meetingId)).thenReturn(Optional.empty());
+
+        Assertions.assertThrows(MeetingNotFoundException.class, () ->
+                meetingService.updateMeeting(meetingId, updateRequest));
+
+        verify(meetingRepository).findById(meetingId);
+        verify(meetingRepository, never()).save(any(Meeting.class));
+    }
+
+    @Test
+    void updateMeetingShouldNotUpdateIfMeetingStatusIsCancelled() {
+        String meetingId = testMeeting.getId();
+
+        updateRequest.setStatus(MeetingStatus.CANCELLED);
+
+        when(meetingRepository.findById(meetingId)).thenReturn(Optional.of(testMeeting));
+
+        Assertions.assertThrows(MeetingConflictException.class, () ->
+                meetingService.updateMeeting(meetingId, updateRequest));
+
+        verify(meetingRepository).findById(meetingId);
+        verify(meetingRepository, never()).save(any(Meeting.class));
+    }
+
+    @Test
+    void cancelMeetingShouldCancelMeetingSuccessfully() {
+        String meetingId = testMeeting.getId();
+
+        testMeeting.setStatus(MeetingStatus.CONFIRMED);
+
+        when(meetingRepository.findById(meetingId)).thenReturn(Optional.of(testMeeting));
+
+        meetingService.cancelMeeting(meetingId);
+
+        when(meetingRepository.save(any(Meeting.class))).thenReturn(testMeeting);
+
+        Assertions.assertEquals(testMeeting.getStatus(), MeetingStatus.CANCELLED);
+
+        verify(meetingRepository).save(any(Meeting.class));
+    }
+
+    @Test
+    void cancelMeetingShouldNotCancelIfMeetingIsNotFound() {
+        String meetingId = "";
+
+        when(meetingRepository.findById(meetingId)).thenReturn(Optional.empty());
+
+        Assertions.assertThrows(MeetingNotFoundException.class, () ->
+                meetingService.cancelMeeting(meetingId));
+
+        verify(meetingRepository).findById(meetingId);
+        verify(meetingRepository, never()).save(any(Meeting.class));
+    }
+
+    @Test
+    void cancelMeetingShouldNotCancelIfStatusIsAlreadyCancelled() {
+        String meetingId = testMeeting.getId();
+
+        when(meetingRepository.findById(meetingId)).thenReturn(Optional.of(testMeeting));
+
+        testMeeting.setStatus(MeetingStatus.CANCELLED);
+
+        Assertions.assertThrows(MeetingConflictException.class, () ->
+                meetingService.cancelMeeting(meetingId));
+
+        verify(meetingRepository).findById(meetingId);
         verify(meetingRepository, never()).save(any(Meeting.class));
     }
 }
