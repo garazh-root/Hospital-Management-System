@@ -3,11 +3,11 @@ POST localhost:1012/meeting
 Content-Type: application/json
 
 {
-  "patientId": "d4e4f2b7-7963-4ecf-8b50-9137b945bdaa",
+  "patientId": "344d8ace-f1c0-43fc-9348-a3c72e3c1627",
   "doctorId": "9fd8827b-7bd9-49a0-b58b-85fdb11548ff",
-  "meetingDate" : "2026-02-04T00:00:00Z",
-  "meetingStartTime" : "2026-02-04T15:30:00Z",
-  "meetingEndTime" : "2026-02-04T16:00:00Z",
+  "meetingDate" : "2026-02-03T00:00:00Z",
+  "meetingStartTime" : "2026-02-03T10:30:00Z",
+  "meetingEndTime" : "2026-02-03T11:00:00Z",
   "notes" : "Bad eyesight"
 }
 

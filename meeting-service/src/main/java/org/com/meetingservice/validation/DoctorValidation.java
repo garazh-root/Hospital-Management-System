@@ -86,9 +86,9 @@ public class DoctorValidation {
         return false;
     }
 
-    public void checkDoctorAvailability(UUID doctorId, Instant start, Instant end) {
+    public void checkDoctorAvailability(String doctorId, Instant start, Instant end) {
         List<Meeting> conflicts = meetingRepository.findByDoctorIdAndStatusAndStartTimeBetween(
-                doctorId, MeetingStatus.CONFIRMED, start.minus(Duration.ofHours(4)), end.plus(Duration.ofHours(4))
+                UUID.fromString(doctorId), MeetingStatus.CONFIRMED, start.minus(Duration.ofHours(4)), end.plus(Duration.ofHours(4))
         );
 
         boolean conflictFound = conflicts.stream()
