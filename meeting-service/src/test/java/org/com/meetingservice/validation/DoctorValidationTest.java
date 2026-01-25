@@ -1,10 +1,10 @@
 package org.com.meetingservice.validation;
 
+import org.com.meetingservice.additional.MeetingStatus;
 import org.com.meetingservice.dto.DoctorResponseDTO;
 import org.com.meetingservice.dto.ScheduleResponseDTO;
-import org.com.meetingservice.exception.InvalidStatusException;
-import org.com.meetingservice.exception.ScheduleNotAvailableException;
-import org.com.meetingservice.exception.ScheduleNotMatchingException;
+import org.com.meetingservice.exception.*;
+import org.com.meetingservice.model.Meeting;
 import org.com.meetingservice.repository.MeetingRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,7 +14,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.DayOfWeek;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
@@ -37,6 +36,7 @@ public class DoctorValidationTest {
 
     private DoctorResponseDTO doctor;
     private String doctorId;
+    private String meetingId;
     private Instant start;
     private Instant end;
     private ScheduleResponseDTO schedule;
@@ -45,6 +45,7 @@ public class DoctorValidationTest {
     void setUp() {
 
         doctorId = UUID.randomUUID().toString();
+        meetingId = "69767527b7b3e35db2e220c6";
 
         schedule = ScheduleResponseDTO.builder()
                 .scheduleStartTime("09:00:00")
@@ -69,8 +70,8 @@ public class DoctorValidationTest {
                 .schedulesList(List.of(schedule))
                 .build();
 
-        start = Instant.parse("2024-03-20T10:00:00Z");
-        end = Instant.parse("2024-03-20T11:00:00Z");
+        start = Instant.parse("2024-03-20T14:00:00Z");
+        end = Instant.parse("2024-03-20T15:00:00Z");
     }
 
     @Test
@@ -86,7 +87,7 @@ public class DoctorValidationTest {
     }
 
     @Test
-    void checkDoctorStatusShouldThrowExceptionWhenStatusIsNull () {
+    void checkDoctorStatusShouldThrowExceptionWhenStatusIsNull() {
         assertThrows(InvalidStatusException.class, () -> doctorValidation.checkDoctorStatus(null));
     }
 
@@ -94,7 +95,7 @@ public class DoctorValidationTest {
     void checkDoctorScheduleShouldThrowExceptionWhenScheduleIsNull() {
         doctor.setSchedulesList(null);
 
-        assertThrows(ScheduleNotAvailableException.class,() -> doctorValidation.checkDoctorSchedule(
+        assertThrows(ScheduleNotAvailableException.class, () -> doctorValidation.checkDoctorSchedule(
                 doctor, start, end));
     }
 
@@ -102,7 +103,7 @@ public class DoctorValidationTest {
     void checkDoctorScheduleShouldThrowExceptionWhenScheduleIsEmpty() {
         doctor.setSchedulesList(Collections.emptyList());
 
-        assertThrows(ScheduleNotAvailableException.class,() -> doctorValidation.checkDoctorSchedule(
+        assertThrows(ScheduleNotAvailableException.class, () -> doctorValidation.checkDoctorSchedule(
                 doctor, start, end));
     }
 
@@ -115,5 +116,110 @@ public class DoctorValidationTest {
                 doctor, thursdayStart, thursdayEnd));
     }
 
+    @Test
+    void checkDoctorScheduleShouldThrowExceptionWhenInScheduleIsDayOff() {
+        schedule.setIsDayOff("true");
+
+        Assertions.assertThrows(ScheduleNotAvailableException.class, () -> doctorValidation.checkDoctorSchedule(
+                doctor, start, end
+        ));
+    }
+
+    @Test
+    void checkDoctorScheduleShouldThrowExceptionWhenStartTimeIsBeforeScheduleStartTime() {
+        Instant earlyStart = Instant.parse("2024-03-20T08:00:00Z");
+        Instant earlyEnd = Instant.parse("2024-03-20T09:00:00Z");
+
+        Assertions.assertThrows(ScheduleNotAvailableException.class, () -> doctorValidation.checkDoctorSchedule(
+                doctor, earlyStart, earlyEnd
+        ));
+    }
+
+    @Test
+    void checkDoctorScheduleShouldThrowExceptionWhenEndTimeIsAfterScheduleStartTime() {
+        Instant lateStart = Instant.parse("2024-03-20T18:00:00Z");
+        Instant lateEnd = Instant.parse("2024-03-20T19:00:00Z");
+
+        Assertions.assertThrows(ScheduleNotAvailableException.class, () -> doctorValidation.checkDoctorSchedule(
+                doctor, lateStart, lateEnd
+        ));
+    }
+
+    @Test
+    void checkDoctorScheduleShouldThrowExceptionWhenDoctorBreakTimeOverlap() {
+        Instant start = Instant.parse("2024-03-20T12:30:00Z");
+        Instant end = Instant.parse("2024-03-20T13:30:00Z");
+
+        Assertions.assertThrows(InvalidMeetingException.class, () -> doctorValidation.checkDoctorSchedule(
+                doctor, start, end
+        ));
+    }
+
+    @Test
+    void checkDoctorScheduleShouldMatchSpecificDate() {
+        schedule.setScheduleDate("2024-03-20");
+
+        assertDoesNotThrow(() -> doctorValidation.checkDoctorSchedule(doctor, start, end));
+    }
+
+    @Test
+    void checkDoctorAvailabilityShouldNotThrowExceptionWhenIsNoConflicts() {
+        when(meetingRepository.findByDoctorIdAndStatusAndStartTimeBetween(
+                any(UUID.class), eq(MeetingStatus.CONFIRMED), any(Instant.class), any(Instant.class)
+        )).thenReturn(Collections.emptyList());
+
+        assertDoesNotThrow(() -> doctorValidation.checkDoctorAvailability(doctorId, start, end));
+
+        verify(meetingRepository, times(1)).findByDoctorIdAndStatusAndStartTimeBetween(
+                any(UUID.class), eq(MeetingStatus.CONFIRMED), any(Instant.class), any(Instant.class)
+        );
+
+    }
+
+    @Test
+    void checkDoctorAvailabilityShouldThrowExceptionWhenConflictOccur () {
+        Meeting meeting = Meeting.builder()
+                .id(meetingId)
+                .doctorId(UUID.fromString(doctorId))
+                .startTime(Instant.parse("2024-03-20T14:30:00Z"))
+                .endTime(Instant.parse("2024-03-20T15:30:00Z"))
+                .status(MeetingStatus.CONFIRMED)
+                .build();
+
+        when(meetingRepository.findByDoctorIdAndStatusAndStartTimeBetween(
+                any(UUID.class), eq(MeetingStatus.CONFIRMED), any(Instant.class), any(Instant.class)
+        )).thenReturn(List.of(meeting));
+
+        Assertions.assertThrows(MeetingConflictException.class, () -> doctorValidation.checkDoctorAvailability(
+                doctorId, start, end
+        ));
+
+        verify(meetingRepository, times(1)).findByDoctorIdAndStatusAndStartTimeBetween(
+                any(UUID.class), eq(MeetingStatus.CONFIRMED), any(Instant.class), any(Instant.class)
+        );
+    }
+
+    @Test
+    void checkDoctorAvailabilityShouldNotThrowExceptionWhenNoConflicts() {
+        Meeting meeting = Meeting.builder()
+                .id(meetingId)
+                .doctorId(UUID.fromString(doctorId))
+                .startTime(Instant.parse("2024-03-20T10:30:00Z"))
+                .endTime(Instant.parse("2024-03-20T11:30:00Z"))
+                .status(MeetingStatus.CONFIRMED)
+                .build();
+
+        when(meetingRepository.findByDoctorIdAndStatusAndStartTimeBetween(
+                any(UUID.class), eq(MeetingStatus.CONFIRMED), any(Instant.class), any(Instant.class)
+        )).thenReturn(List.of(meeting));
+
+        assertDoesNotThrow(() -> doctorValidation.checkDoctorAvailability(
+                doctorId, start, end
+        ));
+
+        verify(meetingRepository, times(1)).findByDoctorIdAndStatusAndStartTimeBetween(
+                any(UUID.class), eq(MeetingStatus.CONFIRMED), any(Instant.class), any(Instant.class)
+        );
+    }
 
 }

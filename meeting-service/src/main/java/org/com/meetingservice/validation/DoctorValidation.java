@@ -33,8 +33,8 @@ public class DoctorValidation {
             throw new ScheduleNotAvailableException(MeetingServiceMessages.SCHEDULE_NOT_AVAILABLE.getMessage());
         }
 
-        ZonedDateTime startZdt = start.atZone(ZoneId.systemDefault());
-        ZonedDateTime endZdt = end.atZone(ZoneId.systemDefault());
+        ZonedDateTime startZdt = start.atZone(ZoneOffset.UTC);
+        ZonedDateTime endZdt = end.atZone(ZoneOffset.UTC);
 
         LocalDate matchingDate = startZdt.toLocalDate();
         LocalTime matchingStartTime = startZdt.toLocalTime();
