@@ -76,7 +76,7 @@ public class PatientServiceIntegrationTest {
 
         String createJson = objectMapper.writeValueAsString(request);
 
-        String createPerson = mockMvc.perform(post("/api")
+        String createPerson = mockMvc.perform(post("/patient")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(createJson))
                 .andExpect(status().isOk())
@@ -86,26 +86,26 @@ public class PatientServiceIntegrationTest {
         PatientResponseDTO response =  objectMapper.readValue(createPerson, PatientResponseDTO.class);
         UUID id = UUID.fromString(response.getId());
 
-        mockMvc.perform(get("/api/{id}", id))
+        mockMvc.perform(get("/patient/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstName").value(request.getFirstName()))
                 .andExpect(jsonPath("$.lastName").value(request.getLastName()));
 
-        mockMvc.perform(get("/api/patients"))
+        mockMvc.perform(get("/patient/patients"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").exists());
 
         response.setFirstName("Sasha");
         response.setPhoneNumber("+222222222");
 
-        mockMvc.perform(put("/api/{id}", id)
+        mockMvc.perform(put("/patient/{id}", id)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(response)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstName").value("Sasha"))
                 .andExpect(jsonPath("$.phoneNumber").value("+222222222"));
 
-        mockMvc.perform(delete("/api/{id}", id))
+        mockMvc.perform(delete("/patient/{id}", id))
                 .andExpect(status().isNoContent());
     }
 }

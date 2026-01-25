@@ -5,6 +5,8 @@ gradle-app.setting
 !gradle-wrapper.jar
 !gradle-wrapper.properties
 .gradletasknamecache
+gradlew
+gradlew.bat
 
 # IntelliJ IDEA
 .idea/
