@@ -12,7 +12,6 @@ import org.com.meetingservice.info.PatientInfo;
 @NoArgsConstructor
 @Builder
 public class MeetingResponse {
-
     private String id;
 
     private String meetingDate;
