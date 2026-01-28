@@ -46,7 +46,4 @@ public class DoctorRequestDTO {
 
     @NotNull(message = "Requires status")
     private DoctorStatus doctorStatus;
-
-    @NotNull(message = "Requires schedules")
-    private List<ScheduleRequestDTO> schedule;
 }
