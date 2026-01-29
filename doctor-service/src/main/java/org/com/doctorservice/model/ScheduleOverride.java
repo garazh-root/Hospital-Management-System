@@ -17,7 +17,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ScheduleOverrides {
+public class ScheduleOverride {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -33,15 +33,16 @@ public class ScheduleOverrides {
     @Enumerated(EnumType.STRING)
     private OverrideType overrideType;
 
-    @Column(name = "start_time")
+    @Column(name = "start_time", nullable = false)
     private LocalTime startTime;
 
-    @Column(name = "end_time")
+    @Column(name = "end_time", nullable = false)
     private LocalTime endTime;
 
     @Column(name = "slot_duration_of_minutes")
     private Integer slotDurationOfMinutes;
 
+    @Column(name = "reason")
     private String reason;
 
     private LocalDate createdAt;

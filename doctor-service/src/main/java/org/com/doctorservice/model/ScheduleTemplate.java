@@ -17,7 +17,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ScheduleTemplates {
+public class ScheduleTemplate {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -55,8 +55,8 @@ public class ScheduleTemplates {
     private Boolean active;
 
     @Column(name = "created_at")
-    private LocalTime createdAt;
+    private LocalDate createdAt;
 
     @Column(name = "updated_at")
-    private LocalTime updatedAt;
+    private LocalDate updatedAt;
 }

@@ -10,8 +10,8 @@ import java.util.UUID;
 
 @Repository
 public interface DoctorRepository extends JpaRepository<Doctor, UUID> {
-    List<Doctor> findAllBySpecialization (String specialization);
-    List<Doctor> findAllDoctorsByGender (Genders gender);
+    List<Doctor> findBySpecialization(String specialization);
+    List<Doctor> findDoctorsByGender(Genders gender);
     boolean existsByEmail(String email);
     boolean existsByEmailAndDoctorIdNot(String email, UUID id);
 }

@@ -1,4 +1,4 @@
-package org.com.doctorservice.dto;
+package org.com.doctorservice.events;
 
 import java.util.UUID;
 
