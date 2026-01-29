@@ -2,7 +2,6 @@ package org.com.doctorservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.com.doctorservice.additional.CustomDayOfTheWeek;
-import org.com.doctorservice.dto.ScheduleResponseDTO;
 import org.com.doctorservice.exception.EmptyScheduleException;
 import org.com.doctorservice.service.ScheduleService;
 import org.junit.jupiter.api.DisplayName;

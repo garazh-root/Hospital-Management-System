@@ -17,7 +17,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ScheduleTemplates {
+public class ScheduleTemplate {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

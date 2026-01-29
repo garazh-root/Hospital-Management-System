@@ -11,8 +11,6 @@ import java.util.UUID;
 @Repository
 public interface ScheduleOverrideRepository extends JpaRepository<ScheduleOverrides, UUID> {
     List<ScheduleOverrides> findByDoctorIdAndDateBetween(UUID doctorId, LocalDate startDate, LocalDate endDate);
-
     List<ScheduleOverrides> findByDoctorIdAndDate(UUID doctorId, LocalDate date);
-
     List<ScheduleOverrides> findByDoctorId(UUID doctorId);
 }

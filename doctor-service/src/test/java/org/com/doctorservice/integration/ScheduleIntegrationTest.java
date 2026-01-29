@@ -1,9 +1,6 @@
 package org.com.doctorservice.integration;
 
 import org.com.doctorservice.additional.CustomDayOfTheWeek;
-import org.com.doctorservice.dto.ScheduleResponseDTO;
-import org.com.doctorservice.model.Schedule;
-import org.com.doctorservice.repository.ScheduleRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;

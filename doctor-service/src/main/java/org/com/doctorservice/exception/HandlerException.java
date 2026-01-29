@@ -32,15 +32,6 @@ public class HandlerException {
         return ResponseEntity.badRequest().body(errors);
     }
 
-    @ExceptionHandler(NotValidException.class)
-    public ResponseEntity<Map<String, String>> handleNotValidException(NotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-
-        log.warn("Not valid arguments received{}", ex.getMessage());
-        errors.put("message", ex.getMessage());
-        return ResponseEntity.badRequest().body(errors);
-    }
-
     @ExceptionHandler(EmptyComponentException.class)
     public ResponseEntity<Map<String, String>> handleEmptyComponentException(EmptyComponentException ex) {
         Map<String, String> errors = new HashMap<>();

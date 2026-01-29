@@ -4,12 +4,9 @@ import org.com.doctorservice.additional.CustomDayOfTheWeek;
 import org.com.doctorservice.additional.DoctorStatus;
 import org.com.doctorservice.dto.DoctorRequestDTO;
 import org.com.doctorservice.dto.DoctorResponseDTO;
-import org.com.doctorservice.dto.ScheduleRequestDTO;
-import org.com.doctorservice.dto.ScheduleResponseDTO;
 import org.com.doctorservice.exception.EmptyScheduleException;
 import org.com.doctorservice.model.Doctor;
 import org.com.doctorservice.additional.Genders;
-import org.com.doctorservice.model.Schedule;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

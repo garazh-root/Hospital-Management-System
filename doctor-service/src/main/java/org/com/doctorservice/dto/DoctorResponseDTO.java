@@ -3,7 +3,6 @@ package org.com.doctorservice.dto;
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.List;
 
 @Data
 @Builder
@@ -18,5 +17,4 @@ public class DoctorResponseDTO {
     private String specialization;
     private String rating;
     private String doctorStatus;
-    private List<ScheduleResponseDTO> scheduleList;
 }

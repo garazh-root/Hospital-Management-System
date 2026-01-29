@@ -5,7 +5,6 @@ import org.com.doctorservice.additional.CustomDayOfTheWeek;
 import org.com.doctorservice.additional.DoctorStatus;
 import org.com.doctorservice.dto.DoctorRequestDTO;
 import org.com.doctorservice.dto.DoctorResponseDTO;
-import org.com.doctorservice.dto.ScheduleRequestDTO;
 import org.com.doctorservice.kafka.KafkaProducer;
 import org.com.doctorservice.additional.Genders;
 import org.junit.jupiter.api.Test;

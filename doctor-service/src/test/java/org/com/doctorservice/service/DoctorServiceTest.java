@@ -4,14 +4,12 @@ import org.com.doctorservice.additional.CustomDayOfTheWeek;
 import org.com.doctorservice.additional.DoctorStatus;
 import org.com.doctorservice.dto.DoctorRequestDTO;
 import org.com.doctorservice.dto.DoctorResponseDTO;
-import org.com.doctorservice.dto.ScheduleRequestDTO;
 import org.com.doctorservice.exception.DoctorNotFoundException;
 import org.com.doctorservice.exception.EmailAlreadyExistsException;
 import org.com.doctorservice.kafka.KafkaProducer;
 import org.com.doctorservice.mapper.DoctorMapper;
 import org.com.doctorservice.model.Doctor;
 import org.com.doctorservice.additional.Genders;
-import org.com.doctorservice.model.Schedule;
 import org.com.doctorservice.repository.DoctorRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -221,7 +219,7 @@ public class DoctorServiceTest {
                 .schedules(List.of(firstScheduleForSecondDoctor, secondScheduleForSecondDoctor))
                 .build();
 
-        when(doctorRepository.findAllBySpecialization(specialization)).thenReturn(List.of(firstDoctor, secondDoctor));
+        when(doctorRepository.findBySpecialization(specialization)).thenReturn(List.of(firstDoctor, secondDoctor));
 
         List<DoctorResponseDTO> list = doctorService.getAllDoctorsBySpecialization(specialization);
 
@@ -229,7 +227,7 @@ public class DoctorServiceTest {
         assertThat(list.get(0).getSpecialization()).isEqualTo(firstDoctor.getSpecialization());
         assertThat(list.get(1).getSpecialization()).isEqualTo(secondDoctor.getSpecialization());
 
-        verify(doctorRepository).findAllBySpecialization(specialization);
+        verify(doctorRepository).findBySpecialization(specialization);
         verifyNoMoreInteractions(doctorRepository);
     }
 
@@ -274,7 +272,7 @@ public class DoctorServiceTest {
                 .schedules(List.of(firstScheduleForSecondDoctor, secondScheduleForSecondDoctor))
                 .build();
 
-        when(doctorRepository.findAllDoctorsByGender(gender)).thenReturn(List.of(firstDoctor, secondDoctor));
+        when(doctorRepository.findDoctorsByGender(gender)).thenReturn(List.of(firstDoctor, secondDoctor));
 
         List<DoctorResponseDTO> responseList = doctorService.findAllDoctorsByGender(gender);
 
@@ -282,7 +280,7 @@ public class DoctorServiceTest {
         assertThat(responseList.get(0).getGender()).isEqualTo(firstDoctor.getGender().toString());
         assertThat(responseList.get(1).getGender()).isEqualTo(secondDoctor.getGender().toString());
 
-        verify(doctorRepository).findAllDoctorsByGender(gender);
+        verify(doctorRepository).findDoctorsByGender(gender);
         verifyNoMoreInteractions(doctorRepository);
     }
 

@@ -1,10 +1,6 @@
 package org.com.doctorservice.mapper;
 
 import org.com.doctorservice.additional.CustomDayOfTheWeek;
-import org.com.doctorservice.dto.ScheduleResponseDTO;
-import org.com.doctorservice.exception.EmptyScheduleException;
-import org.com.doctorservice.model.Schedule;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;

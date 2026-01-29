@@ -1,10 +1,7 @@
 package org.com.doctorservice.service;
 
 import org.com.doctorservice.additional.CustomDayOfTheWeek;
-import org.com.doctorservice.dto.ScheduleResponseDTO;
 import org.com.doctorservice.exception.EmptyScheduleException;
-import org.com.doctorservice.model.Schedule;
-import org.com.doctorservice.repository.ScheduleRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

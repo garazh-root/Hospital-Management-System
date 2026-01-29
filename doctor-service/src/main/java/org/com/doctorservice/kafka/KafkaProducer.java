@@ -1,7 +1,7 @@
 package org.com.doctorservice.kafka;
 
 import lombok.extern.slf4j.Slf4j;
-import org.com.doctorservice.dto.DoctorDeletedEvent;
+import org.com.doctorservice.events.DoctorDeletedEvent;
 import org.com.doctorservice.dto.DoctorResponseDTO;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.core.KafkaTemplate;
