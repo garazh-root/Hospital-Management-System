@@ -55,8 +55,8 @@ public class ScheduleTemplate {
     private Boolean active;
 
     @Column(name = "created_at")
-    private LocalTime createdAt;
+    private LocalDate createdAt;
 
     @Column(name = "updated_at")
-    private LocalTime updatedAt;
+    private LocalDate updatedAt;
 }

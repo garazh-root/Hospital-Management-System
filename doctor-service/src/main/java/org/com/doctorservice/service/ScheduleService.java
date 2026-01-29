@@ -2,12 +2,13 @@ package org.com.doctorservice.service;
 
 import lombok.RequiredArgsConstructor;
 import org.com.doctorservice.additional.CustomDayOfTheWeek;
-import org.com.doctorservice.dto.ScheduleTemplateRequest;
-import org.com.doctorservice.dto.ScheduleTemplateResponse;
+import org.com.doctorservice.additional.OverrideType;
+import org.com.doctorservice.dto.*;
 import org.com.doctorservice.exception.DoctorNotFoundException;
 import org.com.doctorservice.exception.ScheduleNotFoundException;
 import org.com.doctorservice.mapper.ScheduleMapper;
 import org.com.doctorservice.messages.DoctorServiceMessages;
+import org.com.doctorservice.model.ScheduleOverride;
 import org.com.doctorservice.model.ScheduleTemplate;
 import org.com.doctorservice.repository.DoctorRepository;
 import org.com.doctorservice.repository.ScheduleOverrideRepository;
@@ -15,6 +16,7 @@ import org.com.doctorservice.repository.ScheduleTemplateRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
@@ -44,7 +46,7 @@ public class ScheduleService {
                 .effectiveFrom(scheduleTemplateRequest.getEffectiveFrom())
                 .effectiveTo(scheduleTemplateRequest.getEffectiveTo())
                 .active(true)
-                .createdAt(LocalTime.now())
+                .createdAt(LocalDate.now())
                 .build();
 
         ScheduleTemplate savedScheduleTemplate = scheduleTemplateRepository.save(scheduleTemplate);
@@ -66,7 +68,7 @@ public class ScheduleService {
         scheduleTemplate.setSlotDurationOfMinutes(scheduleTemplateRequest.getSlotDuration());
         scheduleTemplate.setEffectiveFrom(scheduleTemplateRequest.getEffectiveFrom());
         scheduleTemplate.setEffectiveTo(scheduleTemplateRequest.getEffectiveTo());
-        scheduleTemplate.setUpdatedAt(LocalTime.now());
+        scheduleTemplate.setUpdatedAt(LocalDate.now());
 
         scheduleTemplateRepository.save(scheduleTemplate);
 
@@ -89,5 +91,75 @@ public class ScheduleService {
                 .stream()
                 .map(ScheduleMapper::toDTO)
                 .toList();
+    }
+
+    @Transactional
+    public ScheduleOverrideResponse createScheduleOverride(UUID doctorId, ScheduleOverrideRequest scheduleOverrideRequest) {
+        doctorRepository.findById(doctorId).orElseThrow(() ->
+                new DoctorNotFoundException(DoctorServiceMessages.DOCTOR_NOT_FOUND.getMessage()));
+
+        ScheduleOverride scheduleOverride = ScheduleOverride.builder()
+                .doctorId(doctorId)
+                .date(scheduleOverrideRequest.getDate())
+                .overrideType(OverrideType.valueOf(scheduleOverrideRequest.getOverrideType()))
+                .startTime(scheduleOverrideRequest.getStartTime())
+                .endTime(scheduleOverrideRequest.getEndTime())
+                .slotDurationOfMinutes(scheduleOverrideRequest.getSlotDurationOfMinutes())
+                .reason(scheduleOverrideRequest.getReason())
+                .createdAt(LocalDate.now())
+                .build();
+
+        ScheduleOverride savedScheduleOverride = scheduleOverrideRepository.save(scheduleOverride);
+
+        return ScheduleMapper.toDTO(savedScheduleOverride);
+    }
+
+    @Transactional
+    public void deleteScheduleOverride(UUID overrideId) {
+        ScheduleOverride scheduleOverride = scheduleOverrideRepository.findById(overrideId).orElseThrow(
+                () -> new ScheduleNotFoundException(DoctorServiceMessages.SCHEDULE_NOT_FOUND.getMessage())
+        );
+
+        scheduleOverrideRepository.delete(scheduleOverride);
+    }
+
+    public List<ScheduleOverrideResponse> getScheduleOverrides(UUID doctorId, LocalDate startDate, LocalDate endDate) {
+        return scheduleOverrideRepository.findByDoctorIdAndDateBetween(doctorId, startDate, endDate).stream()
+                .map(ScheduleMapper::toDTO)
+                .toList();
+    }
+
+    public ScheduleResponse getSchedulesData(UUID doctorId, LocalDate startDate, LocalDate endDate) {
+        List<ScheduleTemplate> scheduleTemplateList = scheduleTemplateRepository.findByDoctorIdAndActiveTrue(doctorId);
+
+        List<ScheduleTemplateResponse> scheduleTemplateResponseList = scheduleTemplateList.stream()
+                .filter(f -> isEffectiveDuring(f, startDate, endDate))
+                .map(ScheduleMapper::toDTO)
+                .toList();
+
+        List<ScheduleOverrideResponse> overrides = scheduleOverrideRepository
+                .findByDoctorIdAndDateBetween(doctorId, startDate, endDate)
+                .stream()
+                .map(ScheduleMapper::toDTO)
+                .toList();
+
+        return ScheduleResponse.builder()
+                .listOfScheduleTemplateResponse(scheduleTemplateResponseList)
+                .listOfScheduleOverrideResponse(overrides)
+                .build();
+    }
+
+    private boolean isEffectiveDuring(ScheduleTemplate scheduleTemplate, LocalDate startDate, LocalDate endDate) {
+        LocalDate effectiveFrom = scheduleTemplate.getEffectiveFrom();
+        LocalDate effectiveTo = scheduleTemplate.getEffectiveTo();
+
+        if(effectiveFrom == null && effectiveTo == null) {
+            return true;
+        }
+
+        boolean startsBeforeEnd = effectiveFrom == null || !effectiveFrom.isAfter(endDate);
+        boolean endsAfterStart = effectiveTo == null || !effectiveTo.isBefore(startDate);
+
+        return startsBeforeEnd && endsAfterStart;
     }
 }
