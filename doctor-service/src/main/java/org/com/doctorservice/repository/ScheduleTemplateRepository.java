@@ -14,7 +14,7 @@ import java.util.UUID;
 public interface ScheduleTemplateRepository extends JpaRepository<ScheduleTemplate, UUID> {
     List<ScheduleTemplate> findByDoctorIdAndActiveTrue(UUID doctorId);
 
-    @Query("SELECT st FROM ScheduleTemplate st WHERE st.doctorId = :doctorId " +
+    @Query("SELECT st FROM ScheduleTemplate  st WHERE st.doctorId = :doctorId " +
                     "AND st.active = true " +
                     "AND (st.effectiveFrom IS NULL OR st.effectiveFrom <= :date) " +
                     "AND (st.effectiveTo IS NULL OR st.effectiveTo >= :date)")

@@ -67,4 +67,13 @@ public class HandlerException {
         errors.put("message", ex.getMessage());
         return ResponseEntity.badRequest().body(errors);
     }
+
+    @ExceptionHandler(ScheduleNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleScheduleNotFoundException(ScheduleNotFoundException ex) {
+        Map<String, String> errors = new HashMap<>();
+
+        log.warn("Schedule not found{}", ex.getMessage());
+        errors.put("message", ex.getMessage());
+        return ResponseEntity.badRequest().body(errors);
+    }
 }

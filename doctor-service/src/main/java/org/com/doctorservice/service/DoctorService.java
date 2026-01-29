@@ -34,11 +34,11 @@ public class DoctorService {
     }
 
     public List<DoctorResponseDTO> getAllDoctorsBySpecialization(String specialization){
-        return mapList(doctorRepository.findAllBySpecialization(specialization));
+        return mapList(doctorRepository.findBySpecialization(specialization));
     }
 
     public List<DoctorResponseDTO> findAllDoctorsByGender(Genders gender) {
-        return mapList(doctorRepository.findAllDoctorsByGender(gender));
+        return mapList(doctorRepository.findDoctorsByGender(gender));
     }
 
     public DoctorResponseDTO createDoctor(DoctorRequestDTO doctorRequestDTO){
@@ -69,11 +69,6 @@ public class DoctorService {
         doctor.setPhoneNumber(request.getPhoneNumber());
         doctor.setSpecialization(request.getSpecialization());
         doctor.setDoctorStatus(request.getDoctorStatus());
-
-        doctor.getSchedules().clear();
-        DoctorMapper.toModelSchedule(request.getSchedule()).stream()
-                .peek(schedule -> schedule.setDoctor(doctor))
-                .forEach(doctor.getSchedules()::add);
 
         Doctor updatedDoctor = doctorRepository.save(doctor);
 
