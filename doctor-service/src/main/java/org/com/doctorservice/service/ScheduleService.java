@@ -29,7 +29,7 @@ public class ScheduleService {
     private DoctorRepository doctorRepository;
 
     @Autowired
-    public void construct(
+    public ScheduleService(
             ScheduleTemplateRepository scheduleTemplateRepository, ScheduleOverrideRepository scheduleOverrideRepository, DoctorRepository doctorRepository) {
         this.scheduleTemplateRepository = scheduleTemplateRepository;
         this.scheduleOverrideRepository = scheduleOverrideRepository;

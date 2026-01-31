@@ -1,5 +1,0 @@
-### GET request to example server
-GET localhost:1011/schedule/filterByDoctorIdAndTimeBetween?
-    doctorId=a0288931-e496-4211-9f09-0b9962256579&startTime=11:00:00&endTime=15:00:00
-
-###
