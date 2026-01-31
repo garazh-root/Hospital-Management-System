@@ -18,7 +18,7 @@ public interface ScheduleTemplateRepository extends JpaRepository<ScheduleTempla
                     "AND st.active = true " +
                     "AND (st.effectiveFrom IS NULL OR st.effectiveFrom <= :date) " +
                     "AND (st.effectiveTo IS NULL OR st.effectiveTo >= :date)")
-    List<ScheduleTemplate> findActiveTemplateForDoctorOnDate(UUID doctorId, LocalDate date);
+    List<ScheduleTemplate> findActiveTemplatesForDoctorOnDate(UUID doctorId, LocalDate date);
 
     List<ScheduleTemplate> findByDoctorIdAndCustomDayOfTheWeekAndActiveTrue(UUID doctorId, CustomDayOfTheWeek dayOfWeek);
 }
