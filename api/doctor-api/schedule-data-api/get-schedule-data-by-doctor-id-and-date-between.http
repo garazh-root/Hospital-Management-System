@@ -1,0 +1,4 @@
+### GET request to example server
+GET localhost:1011/schedule/data?doctorId=56a3f48c-bca3-4b60-ac48-6db4ed9382ad&startDate=2026-02-17&endDate=2026-02-19
+
+###

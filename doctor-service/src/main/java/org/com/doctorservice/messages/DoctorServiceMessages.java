@@ -8,7 +8,8 @@ public enum DoctorServiceMessages {
     EMAIL_ALREADY_EXISTS("Email already exists!"),
     EMPTY_SCHEDULE("Empty schedule!"),
     DOCTOR_NOT_FOUND("Doctor not found!"),
-    SCHEDULE_NOT_FOUND("Schedule not found!");
+    SCHEDULE_NOT_FOUND("Schedule not found!"),
+    OVERRIDE_ALREADY_EXISTS("Override already exists!");
 
     private final String message;
 

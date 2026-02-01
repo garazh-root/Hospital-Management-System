@@ -1,5 +1,0 @@
-### GET request to example server
-GET localhost:1011/schedule/singleScheduleFilterByDate?
-    doctorId=a9450e5a-5a4e-4c50-9a11-823ba37f7c33&scheduleDate=2026-02-02
-
-###

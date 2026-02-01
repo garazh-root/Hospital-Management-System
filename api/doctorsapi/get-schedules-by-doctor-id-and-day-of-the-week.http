@@ -1,5 +1,0 @@
-### GET request to example server
-GET localhost:1011/schedule/filterByIdAndDayOfTheWeek?
-    doctorId=9943502e-0c8d-48e7-a610-f0c990c02b4e&customDayOfTheWeek=WEDNESDAY
-
-###

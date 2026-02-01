@@ -1,0 +1,14 @@
+### GET request to example server
+POST localhost:1011/schedule/override/56a3f48c-bca3-4b60-ac48-6db4ed9382ad
+Content-Type: application/json
+
+{
+  "date": "2026-02-19",
+  "overrideType": "UNAVAILABLE",
+  "startTime": "09:00:00",
+  "endTime": "17:00:00",
+  "slotDurationOfMinutes": 30,
+  "reason": "Sick"
+}
+
+###

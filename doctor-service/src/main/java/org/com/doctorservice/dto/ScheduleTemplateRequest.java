@@ -35,9 +35,7 @@ public class ScheduleTemplateRequest {
     @Max(value = 30, message = "Duration must not be more than 30 minutes")
     private Integer slotDuration;
 
-    @NotNull(message = "Effective date from required")
     private LocalDate effectiveFrom;
 
-    @NotNull(message = "Effective date to required")
     private LocalDate effectiveTo;
 }

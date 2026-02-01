@@ -1,10 +1,10 @@
 package org.com.doctorservice.service;
 
-import lombok.RequiredArgsConstructor;
 import org.com.doctorservice.additional.CustomDayOfTheWeek;
 import org.com.doctorservice.additional.OverrideType;
 import org.com.doctorservice.dto.*;
 import org.com.doctorservice.exception.DoctorNotFoundException;
+import org.com.doctorservice.exception.OverrideAlreadyExistsException;
 import org.com.doctorservice.exception.ScheduleNotFoundException;
 import org.com.doctorservice.mapper.ScheduleMapper;
 import org.com.doctorservice.messages.DoctorServiceMessages;
@@ -13,27 +13,34 @@ import org.com.doctorservice.model.ScheduleTemplate;
 import org.com.doctorservice.repository.DoctorRepository;
 import org.com.doctorservice.repository.ScheduleOverrideRepository;
 import org.com.doctorservice.repository.ScheduleTemplateRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 public class ScheduleService {
 
     private ScheduleTemplateRepository scheduleTemplateRepository;
     private ScheduleOverrideRepository scheduleOverrideRepository;
-    private ScheduleMapper scheduleMapper;
     private DoctorRepository doctorRepository;
+
+    @Autowired
+    public ScheduleService(
+            ScheduleTemplateRepository scheduleTemplateRepository, ScheduleOverrideRepository scheduleOverrideRepository, DoctorRepository doctorRepository) {
+        this.scheduleTemplateRepository = scheduleTemplateRepository;
+        this.scheduleOverrideRepository = scheduleOverrideRepository;
+        this.doctorRepository = doctorRepository;
+    }
 
     @Transactional
     public ScheduleTemplateResponse createScheduleTemplate(UUID doctorId, ScheduleTemplateRequest scheduleTemplateRequest) {
-        doctorRepository.findById(doctorId).orElseThrow(() -> new DoctorNotFoundException(
-                DoctorServiceMessages.DOCTOR_NOT_FOUND.getMessage()));
+        if(!doctorRepository.existsById(doctorId)) {
+            throw new DoctorNotFoundException(DoctorServiceMessages.DOCTOR_NOT_FOUND.getMessage());
+        }
 
         ScheduleTemplate scheduleTemplate = ScheduleTemplate.builder()
                 .doctorId(doctorId)
@@ -93,10 +100,23 @@ public class ScheduleService {
                 .toList();
     }
 
+    public List<ScheduleTemplateResponse> getSchedulesByDoctorIdDayOfTheWeek(UUID doctorId, CustomDayOfTheWeek dayOfWeek) {
+        return scheduleTemplateRepository.findByDoctorIdAndCustomDayOfTheWeekAndActiveTrue(doctorId, dayOfWeek)
+                .stream()
+                .map(ScheduleMapper::toDTO)
+                .toList();
+    }
+
     @Transactional
     public ScheduleOverrideResponse createScheduleOverride(UUID doctorId, ScheduleOverrideRequest scheduleOverrideRequest) {
-        doctorRepository.findById(doctorId).orElseThrow(() ->
-                new DoctorNotFoundException(DoctorServiceMessages.DOCTOR_NOT_FOUND.getMessage()));
+       if(!doctorRepository.existsById(doctorId)) {
+           throw new DoctorNotFoundException(DoctorServiceMessages.DOCTOR_NOT_FOUND.getMessage());
+       }
+
+        List<ScheduleOverride> conflictOverrides = scheduleOverrideRepository.findByDoctorIdAndDate(doctorId, scheduleOverrideRequest.getDate());
+        if(!conflictOverrides.isEmpty()) {
+            throw new OverrideAlreadyExistsException(DoctorServiceMessages.OVERRIDE_ALREADY_EXISTS.getMessage());
+        }
 
         ScheduleOverride scheduleOverride = ScheduleOverride.builder()
                 .doctorId(doctorId)
@@ -123,8 +143,16 @@ public class ScheduleService {
         scheduleOverrideRepository.delete(scheduleOverride);
     }
 
-    public List<ScheduleOverrideResponse> getScheduleOverrides(UUID doctorId, LocalDate startDate, LocalDate endDate) {
-        return scheduleOverrideRepository.findByDoctorIdAndDateBetween(doctorId, startDate, endDate).stream()
+    public List<ScheduleOverrideResponse> getScheduleOverridesByDoctorIdAndDateBetween(UUID doctorId, LocalDate startDate, LocalDate endDate) {
+        return scheduleOverrideRepository.findByDoctorIdAndDateBetween(doctorId, startDate, endDate)
+                .stream()
+                .map(ScheduleMapper::toDTO)
+                .toList();
+    }
+
+    public List<ScheduleOverrideResponse> getScheduleOverridesByDoctorId(UUID doctorId) {
+        return scheduleOverrideRepository.findByDoctorId(doctorId)
+                .stream()
                 .map(ScheduleMapper::toDTO)
                 .toList();
     }

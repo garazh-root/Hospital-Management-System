@@ -76,4 +76,13 @@ public class HandlerException {
         errors.put("message", ex.getMessage());
         return ResponseEntity.badRequest().body(errors);
     }
+
+    @ExceptionHandler(OverrideAlreadyExistsException.class)
+    public ResponseEntity<Map<String, String>> handleOverrideAlreadyExistsException(OverrideAlreadyExistsException ex) {
+        Map<String, String> errors = new HashMap<>();
+
+        log.warn("Override already exists{}", ex.getMessage());
+        errors.put("message", ex.getMessage());
+        return ResponseEntity.badRequest().body(errors);
+    }
 }

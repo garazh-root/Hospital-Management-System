@@ -1,0 +1,15 @@
+### GET request to example server
+PUT localhost:1011/schedule/templates/58e70a8b-4d3a-4058-b68d-4a122d825f20
+Content-Type: application/json
+
+{
+  "startTime": "10:00:00",
+  "endTime": "18:00:00",
+  "breakStartTime": "14:00:00",
+  "breakEndTime": "15:00:00",
+  "slotDuration": 30,
+  "effectiveFrom": "2026-01-01",
+  "effectiveTo": "2026-06-15"
+}
+
+###
