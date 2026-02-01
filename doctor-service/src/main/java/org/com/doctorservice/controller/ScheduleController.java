@@ -1,18 +1,13 @@
 package org.com.doctorservice.controller;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
 import org.com.doctorservice.additional.CustomDayOfTheWeek;
 import org.com.doctorservice.dto.*;
 import org.com.doctorservice.service.ScheduleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,12 +21,12 @@ public class ScheduleController {
         this.scheduleService = scheduleService;
     }
 
-    @PostMapping("/template")
+    @PostMapping("/template/{doctorIdToCreateTemplate}")
     public ResponseEntity<ScheduleTemplateResponse> createScheduleTemplate(
-            @RequestParam UUID doctorId,
+            @PathVariable UUID doctorIdToCreateTemplate,
             @RequestBody ScheduleTemplateRequest scheduleTemplateRequest
     ) {
-        ScheduleTemplateResponse scheduleTemplateResponse = scheduleService.createScheduleTemplate(doctorId, scheduleTemplateRequest);
+        ScheduleTemplateResponse scheduleTemplateResponse = scheduleService.createScheduleTemplate(doctorIdToCreateTemplate, scheduleTemplateRequest);
         return ResponseEntity.ok().body(scheduleTemplateResponse);
     }
 
@@ -50,13 +45,13 @@ public class ScheduleController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/templates{doctorId}")
+    @GetMapping("/templates/{doctorId}")
     public ResponseEntity<List<ScheduleTemplateResponse>> getScheduleTemplatesByDoctorId(@PathVariable UUID doctorId) {
         List<ScheduleTemplateResponse> scheduleTemplateResponseList = scheduleService.getScheduleTemplates(doctorId);
         return ResponseEntity.ok().body(scheduleTemplateResponseList);
     }
 
-    @GetMapping("/templates/{doctorId}")
+    @GetMapping("/templates/byDay/{doctorId}")
     public ResponseEntity<List<ScheduleTemplateResponse>> getSchedulesByDoctorIdAndDayOfTheWeek(
             @PathVariable UUID doctorId,
             @RequestParam CustomDayOfTheWeek customDayOfTheWeek
@@ -67,11 +62,11 @@ public class ScheduleController {
         return ResponseEntity.ok().body(scheduleTemplateResponseList);
     }
 
-    @PostMapping("/override")
+    @PostMapping("/override/{doctorIdToCreateOverride}")
     public ResponseEntity<ScheduleOverrideResponse> createScheduleOverride(
-            @RequestParam UUID doctorId, ScheduleOverrideRequest scheduleOverrideRequest
+            @PathVariable UUID doctorIdToCreateOverride, @RequestBody ScheduleOverrideRequest scheduleOverrideRequest
     ) {
-        ScheduleOverrideResponse scheduleOverrideResponse = scheduleService.createScheduleOverride(doctorId, scheduleOverrideRequest);
+        ScheduleOverrideResponse scheduleOverrideResponse = scheduleService.createScheduleOverride(doctorIdToCreateOverride, scheduleOverrideRequest);
         return ResponseEntity.ok().body(scheduleOverrideResponse);
     }
 
@@ -81,7 +76,7 @@ public class ScheduleController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/overrides/{doctorId}")
+    @GetMapping("/overrides/range/{doctorId}")
     public ResponseEntity<List<ScheduleOverrideResponse>> getSchedulesOverridesByDoctorIdAndDateBetween(
             @PathVariable UUID doctorId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
