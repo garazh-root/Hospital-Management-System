@@ -1,0 +1,14 @@
+### GET request to example server
+POST localhost:1011/schedule/template/4809e1a7-7dec-43b0-b5f2-d2eb303455b8
+Content-Type: application/json
+
+{
+  "dayOfTheWeek": "MONDAY",
+  "startTime": "09:00:00",
+  "endTime": "17:00:00",
+  "breakStartTime": "13:00:00",
+  "breakEndTime": "14:00:00",
+  "slotDuration": 30
+}
+
+###
