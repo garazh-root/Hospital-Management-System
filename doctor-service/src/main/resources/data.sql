@@ -11,6 +11,40 @@ CREATE TABLE IF NOT EXISTS doctor
     doctor_status varchar(32) NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS schedule_templates
+(
+    id UUID PRIMARY KEY DEFAULT pg_catalog.gen_random_uuid(),
+    doctor_id UUID NOT NULL REFERENCES doctor(doctor_id) ON DELETE CASCADE,
+    day_of_week VARCHAR(16) NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    break_start_time TIME NOT NULL,
+    break_end_time TIME NOT NULL,
+    slot_duration_of_minutes INTEGER NOT NULL DEFAULT (30),
+    effective_from DATE,
+    effective_to DATE,
+    active BOOLEAN NOT NULL DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT valid_time CHECK ( end_time > start_time ),
+    CONSTRAINT valid_break CHECK ( break_end_time > start_time )
+);
+
+CREATE TABLE IF NOT EXISTS schedule_override
+(
+    id UUID PRIMARY KEY DEFAULT pg_catalog.gen_random_uuid(),
+    doctor_id UUID NOT NULL REFERENCES doctor(doctor_id) ON DELETE CASCADE,
+    date DATE NOT NULL,
+    override_type VARCHAR(16) NOT NULL,
+    start_time TIME,
+    end_time TIME,
+    slot_duration_of_minutes INTEGER,
+    reason VARCHAR(128),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (doctor_id, date),
+    CONSTRAINT valid_override_type CHECK (override_type IN ('UNAVAILABLE','CUSTOM_HOURS' ,'EMERGENCY'))
+);
+
 INSERT INTO doctor (doctor_id, first_name, last_name, gender, email, phone_number, specialization, rating, doctor_status)
 SELECT 'a0288931-e496-4211-9f09-0b9962256579',
        'Will',
@@ -252,155 +286,140 @@ SELECT '048a27f9-08e1-4032-aac8-bdbd85f051c8',
        'ACTIVE'
 WHERE NOT EXISTS (SELECT 1 FROM doctor WHERE doctor_id = '048a27f9-08e1-4032-aac8-bdbd85f051c8');
 
-CREATE TABLE IF NOT EXISTS schedule_template
-(
-    id UUID PRIMARY KEY DEFAULT pg_catalog.gen_random_uuid(),
-    doctor_id UUID NOT NULL REFERENCES doctor(doctor_id) ON DELETE CASCADE,
-    day_of_week VARCHAR(16) NOT NULL,
-    start_time TIME NOT NULL,
-    end_time TIME NOT NULL,
-    break_start_time TIME NOT NULL,
-    break_end_time TIME NOT NULL,
-    slot_duration_of_minutes INTEGER NOT NULL DEFAULT (30),
-    effective_from DATE,
-    effective_to DATE,
-    active BOOLEAN NOT NULL DEFAULT true,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT valid_time CHECK ( end_time > start_time ),
-    CONSTRAINT valid_break CHECK ( break_end_time > start_time )
-);
-
-CREATE TABLE IF NOT EXISTS schedule_override
-(
-    id UUID PRIMARY KEY DEFAULT pg_catalog.gen_random_uuid(),
-    doctor_id UUID NOT NULL REFERENCES doctor(doctor_id) ON DELETE CASCADE,
-    date DATE NOT NULL,
-    override_type VARCHAR(16) NOT NULL,
-    start_time TIME,
-    end_time TIME,
-    slot_duration_of_minutes INTEGER,
-    reason VARCHAR(128),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (doctor_id, date),
-    CONSTRAINT valid_override_type CHECK (override_type IN ('UNAVAILABLE','CUSTOM_HOURS' ,'EMERGENCY'))
-);
-
-INSERT INTO schedule_template (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
+INSERT INTO schedule_templates (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
 VALUES
-     ('a0288931-e496-4211-9f09-0b9962256579', 'MONDAY', '09:00:00', '17:00:00', '13:00:00', '14:00:00',30, true),
-     ('a0288931-e496-4211-9f09-0b9962256579', 'WEDNESDAY', '10:00:00', '16:00:00', '12:00:00', '13:00:00',30, true),
-     ('a0288931-e496-4211-9f09-0b9962256579', 'FRIDAY', '09:00:00', '17:00:00', '13:00:00', '14:00:00',30, true);
+    ('a0288931-e496-4211-9f09-0b9962256579', 'MONDAY', '09:00:00', '17:00:00', '13:00:00', '14:00:00', 30, true),
+    ('a0288931-e496-4211-9f09-0b9962256579', 'WEDNESDAY', '10:00:00', '16:00:00', '12:00:00', '13:00:00', 30, true),
+    ('a0288931-e496-4211-9f09-0b9962256579', 'FRIDAY', '09:00:00', '17:00:00', '13:00:00', '14:00:00', 30, true);
 
-INSERT INTO schedule_template (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
+-- Lesley Grey (Dermatologist)
+INSERT INTO schedule_templates (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
 VALUES
-    ('56a3f48c-bca3-4b60-ac48-6db4ed9382ad', 'MONDAY', '09:00:00', '17:00:00', '13:00:00', '14:00:00',30, true),
-    ('56a3f48c-bca3-4b60-ac48-6db4ed9382ad', 'TUESDAY', '09:00:00', '16:00:00', '12:00:00', '13:00:00',30, true),
-    ('56a3f48c-bca3-4b60-ac48-6db4ed9382ad', 'THURSDAY', '08:30:00', '15:30:00', '12:00:00', '13:00:00',30, true),
-    ('56a3f48c-bca3-4b60-ac48-6db4ed9382ad', 'FRIDAY', '09:30:00', '17:30:00', '13:30:00', '14:30:00',30, true);
+    ('56a3f48c-bca3-4b60-ac48-6db4ed9382ad', 'MONDAY', '09:00:00', '17:00:00', '13:00:00', '14:00:00', 30, true),
+    ('56a3f48c-bca3-4b60-ac48-6db4ed9382ad', 'TUESDAY', '09:00:00', '16:00:00', '12:00:00', '13:00:00', 30, true),
+    ('56a3f48c-bca3-4b60-ac48-6db4ed9382ad', 'THURSDAY', '08:30:00', '15:30:00', '12:00:00', '13:00:00', 30, true),
+    ('56a3f48c-bca3-4b60-ac48-6db4ed9382ad', 'FRIDAY', '09:30:00', '17:30:00', '13:30:00', '14:30:00', 30, true);
 
-INSERT INTO schedule_template (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
+-- Debra Winslow (Ophthalmologist)
+INSERT INTO schedule_templates (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
 VALUES
-    ('9fd8827b-7bd9-49a0-b58b-85fdb11548ff', 'MONDAY', '09:00:00', '17:00:00', '13:00:00', '14:00:00',30, true),
-    ('9fd8827b-7bd9-49a0-b58b-85fdb11548ff', 'WEDNESDAY', '09:00:00', '16:00:00', '12:00:00', '13:00:00',30, true),
-    ('9fd8827b-7bd9-49a0-b58b-85fdb11548ff', 'THURSDAY', '10:00:00', '17:00:00', '13:00:00', '14:00:00',30, true),
-    ('9fd8827b-7bd9-49a0-b58b-85fdb11548ff', 'FRIDAY', '08:30:00', '16:30:00', '12:30:00', '13:30:00',30, true);
+    ('9fd8827b-7bd9-49a0-b58b-85fdb11548ff', 'MONDAY', '09:00:00', '17:00:00', '13:00:00', '14:00:00', 30, true),
+    ('9fd8827b-7bd9-49a0-b58b-85fdb11548ff', 'WEDNESDAY', '09:00:00', '16:00:00', '12:00:00', '13:00:00', 30, true),
+    ('9fd8827b-7bd9-49a0-b58b-85fdb11548ff', 'THURSDAY', '10:00:00', '17:00:00', '13:00:00', '14:00:00', 30, true),
+    ('9fd8827b-7bd9-49a0-b58b-85fdb11548ff', 'FRIDAY', '08:30:00', '16:30:00', '12:30:00', '13:30:00', 30, true);
 
-INSERT INTO schedule_template (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
+-- Harvey Duma (Dentist)
+INSERT INTO schedule_templates (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
 VALUES
-    ('c088b336-b7a1-4aca-a6be-e7d48ab3109f', 'TUESDAY', '10:00:00', '16:30:00', 30, '13:00:00', '14:00:00', true),
-    ('c088b336-b7a1-4aca-a6be-e7d48ab3109f', 'WEDNESDAY', '10:00:00', '16:30:00', 30, '13:00:00', '14:00:00', true),
-    ('c088b336-b7a1-4aca-a6be-e7d48ab3109f', 'THURSDAY', '10:00:00', '16:30:00', 30, '13:00:00', '14:00:00', true),
-    ('c088b336-b7a1-4aca-a6be-e7d48ab3109f', 'FRIDAY', '11:00:00', '16:30:00', 30, '13:00:00', '14:00:00', true);
+    ('c088b336-b7a1-4aca-a6be-e7d48ab3109f', 'TUESDAY', '10:00:00', '16:30:00', '13:00:00', '14:00:00', 30, true),
+    ('c088b336-b7a1-4aca-a6be-e7d48ab3109f', 'WEDNESDAY', '10:00:00', '16:30:00', '13:00:00', '14:00:00', 30, true),
+    ('c088b336-b7a1-4aca-a6be-e7d48ab3109f', 'THURSDAY', '10:00:00', '16:30:00', '13:00:00', '14:00:00', 30, true),
+    ('c088b336-b7a1-4aca-a6be-e7d48ab3109f', 'FRIDAY', '11:00:00', '16:30:00', '13:00:00', '14:00:00', 30, true);
 
-INSERT INTO schedule_template (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
+-- Emma Montgomery (Neurologist)
+INSERT INTO schedule_templates (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
 VALUES
-    ('bffe3ab9-973c-4d04-9363-5f754ad228d6', 'MONDAY', '08:00:00', '15:30:00', 30, '12:00:00', '13:00:00', true),
-    ('bffe3ab9-973c-4d04-9363-5f754ad228d6', 'WEDNESDAY', '08:00:00', '15:30:00', 30, '12:00:00', '13:00:00', true),
-    ('bffe3ab9-973c-4d04-9363-5f754ad228d6', 'FRIDAY', '08:00:00', '16:30:00', 30, '12:00:00', '13:00:00', true);
+    ('bffe3ab9-973c-4d04-9363-5f754ad228d6', 'MONDAY', '08:00:00', '15:30:00', '12:00:00', '13:00:00', 30, true),
+    ('bffe3ab9-973c-4d04-9363-5f754ad228d6', 'WEDNESDAY', '08:00:00', '15:30:00', '12:00:00', '13:00:00', 30, true),
+    ('bffe3ab9-973c-4d04-9363-5f754ad228d6', 'FRIDAY', '08:00:00', '16:30:00', '12:00:00', '13:00:00', 30, true);
 
-INSERT INTO schedule_template (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
+-- Michael De Veil (Orthopedic)
+INSERT INTO schedule_templates (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
 VALUES
-    ('f29b9a6f-628b-41a7-8816-758a6a3e67a2', 'MONDAY', '09:00:00', '16:00:00', 30, '12:00:00', '13:00:00', true),
-    ('f29b9a6f-628b-41a7-8816-758a6a3e67a2', 'TUESDAY', '10:00:00', '17:00:00', 30, '14:00:00', '15:00:00', true),
-    ('f29b9a6f-628b-41a7-8816-758a6a3e67a2', 'THURSDAY', '09:00:00', '16:00:00', 30, '13:00:00', '14:00:00', true),
-    ('f29b9a6f-628b-41a7-8816-758a6a3e67a2', 'FRIDAY', '11:00:00', '16:00:00', 30, '14:00:00', '15:00:00', true);
+    ('f29b9a6f-628b-41a7-8816-758a6a3e67a2', 'MONDAY', '09:00:00', '16:00:00', '12:00:00', '13:00:00', 30, true),
+    ('f29b9a6f-628b-41a7-8816-758a6a3e67a2', 'TUESDAY', '10:00:00', '17:00:00', '14:00:00', '15:00:00', 30, true),
+    ('f29b9a6f-628b-41a7-8816-758a6a3e67a2', 'THURSDAY', '09:00:00', '16:00:00', '13:00:00', '14:00:00', 30, true),
+    ('f29b9a6f-628b-41a7-8816-758a6a3e67a2', 'FRIDAY', '11:00:00', '16:00:00', '14:00:00', '15:00:00', 30, true);
 
-INSERT INTO schedule_template (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
+-- Becky Norse (Gastroenterologist)
+INSERT INTO schedule_templates (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
 VALUES
-    ('657cd99a-9657-4cf8-983a-5447334c4d92', 'TUESDAY', '09:20:00', '15:30:00', 30, '13:00:00', '14:00:00', true),
-    ('657cd99a-9657-4cf8-983a-5447334c4d92', 'WEDNESDAY', '09:00:00', '16:30:00', 30, '13:00:00', '14:00:00', true),
-    ('657cd99a-9657-4cf8-983a-5447334c4d92', 'THURSDAY', '11:00:00', '16:30:00', 30, '14:00:00', '15:00:00', true);
+    ('657cd99a-9657-4cf8-983a-5447334c4d92', 'TUESDAY', '09:20:00', '15:30:00', '13:00:00', '14:00:00', 30, true),
+    ('657cd99a-9657-4cf8-983a-5447334c4d92', 'WEDNESDAY', '09:00:00', '16:30:00', '13:00:00', '14:00:00', 30, true),
+    ('657cd99a-9657-4cf8-983a-5447334c4d92', 'THURSDAY', '11:00:00', '16:30:00', '14:00:00', '15:00:00', 30, true);
 
-INSERT INTO schedule_template (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
+-- Mitch Wilnowski (Surgeon)
+INSERT INTO schedule_templates (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
 VALUES
-    ('329ddbb2-8b50-4ecb-8455-0aeaed91216c', 'MONDAY', '10:00:00', '16:30:00', 30, '14:00:00', '15:00:00', true),
-    ('329ddbb2-8b50-4ecb-8455-0aeaed91216c', 'TUESDAY', '10:00:00', '16:30:00', 30, '14:00:00', '15:00:00', true),
-    ('329ddbb2-8b50-4ecb-8455-0aeaed91216c', 'WEDNESDAY', '10:00:00', '16:30:00', 30, '13:00:00', '14:00:00', true),
-    ('329ddbb2-8b50-4ecb-8455-0aeaed91216c', 'THURSDAY', '10:00:00', '16:30:00', 30, '13:00:00', '14:00:00', true);
+    ('329ddbb2-8b50-4ecb-8455-0aeaed91216c', 'MONDAY', '10:00:00', '16:30:00', '14:00:00', '15:00:00', 30, true),
+    ('329ddbb2-8b50-4ecb-8455-0aeaed91216c', 'TUESDAY', '10:00:00', '16:30:00', '14:00:00', '15:00:00', 30, true),
+    ('329ddbb2-8b50-4ecb-8455-0aeaed91216c', 'WEDNESDAY', '10:00:00', '16:30:00', '13:00:00', '14:00:00', 30, true),
+    ('329ddbb2-8b50-4ecb-8455-0aeaed91216c', 'THURSDAY', '10:00:00', '16:30:00', '13:00:00', '14:00:00', 30, true);
 
-INSERT INTO schedule_template (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
+-- Sarah Tober (Pediatrician)
+INSERT INTO schedule_templates (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
 VALUES
-    ('bd3eb373-dd02-4a82-a892-8559cff3f2bf', 'MONDAY', '09:00:00', '16:00:00', 30, '13:00:00', '14:00:00', true),
-    ('bd3eb373-dd02-4a82-a892-8559cff3f2bf', 'TUESDAY', '09:00:00', '16:00:00', 30, '13:00:00', '14:00:00', true);
+    ('bd3eb373-dd02-4a82-a892-8559cff3f2bf', 'MONDAY', '09:00:00', '16:00:00', '13:00:00', '14:00:00', 30, true),
+    ('bd3eb373-dd02-4a82-a892-8559cff3f2bf', 'TUESDAY', '09:00:00', '16:00:00', '13:00:00', '14:00:00', 30, true);
 
-INSERT INTO schedule_template (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
+-- Jamal Novis (Nephrologist)
+INSERT INTO schedule_templates (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
 VALUES
-    ('7c49389c-5694-4dea-8cc3-2f2e2db4e1b6', 'MONDAY', '09:00:00', '16:00:00', 30, '13:00:00', '14:00:00', true),
-    ('7c49389c-5694-4dea-8cc3-2f2e2db4e1b6', 'TUESDAY', '10:00:00', '16:30:00', 30, '13:00:00', '14:00:00', true),
-    ('7c49389c-5694-4dea-8cc3-2f2e2db4e1b6', 'WEDNESDAY', '09:00:00', '16:00:00', 30, '13:00:00', '14:00:00', true),
-    ('7c49389c-5694-4dea-8cc3-2f2e2db4e1b6', 'FRIDAY', '11:00:00', '15:30:00', 30, '13:30:00', '14:30:00', true);
+    ('7c49389c-5694-4dea-8cc3-2f2e2db4e1b6', 'MONDAY', '09:00:00', '16:00:00', '13:00:00', '14:00:00', 30, true),
+    ('7c49389c-5694-4dea-8cc3-2f2e2db4e1b6', 'TUESDAY', '10:00:00', '16:30:00', '13:00:00', '14:00:00', 30, true),
+    ('7c49389c-5694-4dea-8cc3-2f2e2db4e1b6', 'WEDNESDAY', '09:00:00', '16:00:00', '13:00:00', '14:00:00', 30, true),
+    ('7c49389c-5694-4dea-8cc3-2f2e2db4e1b6', 'FRIDAY', '11:00:00', '15:30:00', '13:30:00', '14:30:00', 30, true);
 
-INSERT INTO schedule_template (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
+-- Chun Ki (Oncologist)
+INSERT INTO schedule_templates (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
 VALUES
-    ('a9450e5a-5a4e-4c50-9a11-823ba37f7c33', 'TUESDAY', '09:00:00', '15:30:00', 30, '13:00:00', '14:00:00', true),
-    ('a9450e5a-5a4e-4c50-9a11-823ba37f7c33', 'FRIDAY', '11:00:00', '15:30:00', 30, '13:30:00', '14:30:00', true);
+    ('a9450e5a-5a4e-4c50-9a11-823ba37f7c33', 'TUESDAY', '09:00:00', '15:30:00', '13:00:00', '14:00:00', 30, true),
+    ('a9450e5a-5a4e-4c50-9a11-823ba37f7c33', 'FRIDAY', '11:00:00', '15:30:00', '13:30:00', '14:30:00', 30, true);
 
-INSERT INTO schedule_template (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
+-- Kyle Norrington (Oncologist)
+INSERT INTO schedule_templates (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
 VALUES
-    ('b88c1bc0-4b7b-4cf9-836b-e6c176f2f1a5', 'MONDAY', '09:00:00', '15:30:00', 30, '13:00:00', '14:00:00', true),
-    ('b88c1bc0-4b7b-4cf9-836b-e6c176f2f1a5', 'WEDNESDAY', '10:00:00', '16:30:00', 30, '13:00:00', '14:00:00', true);
+    ('b88c1bc0-4b7b-4cf9-836b-e6c176f2f1a5', 'MONDAY', '09:00:00', '15:30:00', '13:00:00', '14:00:00', 30, true),
+    ('b88c1bc0-4b7b-4cf9-836b-e6c176f2f1a5', 'WEDNESDAY', '10:00:00', '16:30:00', '13:00:00', '14:00:00', 30, true);
 
-INSERT INTO schedule_template (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
+-- Nora De Santa (Pulmonologist)
+INSERT INTO schedule_templates (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
 VALUES
-    ('792b60bc-f394-4eb5-ad44-90fc9e142ca8', 'MONDAY', '10:00:00', '16:30:00', 30, '13:00:00', '14:00:00', true),
-    ('792b60bc-f394-4eb5-ad44-90fc9e142ca8', 'WEDNESDAY', '10:00:00', '16:45:00', 30, '13:30:00', '14:30:00', true),
-    ('792b60bc-f394-4eb5-ad44-90fc9e142ca8', 'FRIDAY', '12:00:00', '17:00:00', 30, '14:30:00', '15:30:00', true);
+    ('792b60bc-f394-4eb5-ad44-90fc9e142ca8', 'MONDAY', '10:00:00', '16:30:00', '13:00:00', '14:00:00', 30, true),
+    ('792b60bc-f394-4eb5-ad44-90fc9e142ca8', 'WEDNESDAY', '10:00:00', '16:45:00', '13:30:00', '14:30:00', 30, true),
+    ('792b60bc-f394-4eb5-ad44-90fc9e142ca8', 'FRIDAY', '12:00:00', '17:00:00', '14:30:00', '15:30:00', 30, true);
 
-INSERT INTO schedule_template (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
+-- Evelynn Anzer (Gynaecologist)
+INSERT INTO schedule_templates (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
 VALUES
-    ('d7975181-a93b-4a81-85fe-64067c44ff02', 'TUESDAY', '09:00:00', '16:00:00', 30, '13:30:00', '14:30:00', true),
-    ('d7975181-a93b-4a81-85fe-64067c44ff02', 'WEDNESDAY', '12:00:00', '17:00:00', 30, '14:30:00', '15:30:00', true);
+    ('d7975181-a93b-4a81-85fe-64067c44ff02', 'TUESDAY', '09:00:00', '16:00:00', '13:30:00', '14:30:00', 30, true),
+    ('d7975181-a93b-4a81-85fe-64067c44ff02', 'WEDNESDAY', '12:00:00', '17:00:00', '14:30:00', '15:30:00', 30, true);
 
-INSERT INTO schedule_template (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
+-- Mark Hollow (Hepatologist)
+INSERT INTO schedule_templates (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
 VALUES
-    ('25f4e613-af3b-41f4-8f99-f4b619b642d1', 'MONDAY', '09:45:00', '16:00:00', 30, '13:30:00', '14:30:00', true),
-    ('25f4e613-af3b-41f4-8f99-f4b619b642d1', 'WEDNESDAY', '12:00:00', '16:20:00', 30, '13:00:00', '14:00:00', true),
-    ('25f4e613-af3b-41f4-8f99-f4b619b642d1', 'FRIDAY', '09:00:00', '16:30:00', 30, '13:00:00', '14:00:00', true);
+    ('25f4e613-af3b-41f4-8f99-f4b619b642d1', 'MONDAY', '09:45:00', '16:00:00', '13:30:00', '14:30:00', 30, true),
+    ('25f4e613-af3b-41f4-8f99-f4b619b642d1', 'WEDNESDAY', '12:00:00', '16:20:00', '13:00:00', '14:00:00', 30, true),
+    ('25f4e613-af3b-41f4-8f99-f4b619b642d1', 'FRIDAY', '09:00:00', '16:30:00', '13:00:00', '14:00:00', 30, true);
 
-INSERT INTO schedule_template (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
+-- Derek Whales (Hepatologist)
+INSERT INTO schedule_templates (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
 VALUES
-    ('4809e1a7-7dec-43b0-b5f2-d2eb303455b8', 'TUESDAY', '09:00:00', '16:30:00', 30, '13:00:00', '14:00:00', true),
-    ('4809e1a7-7dec-43b0-b5f2-d2eb303455b8', 'THURSDAY', '09:00:00', '16:30:00', 30, '13:00:00', '14:00:00', true);
+    ('4809e1a7-7dec-43b0-b5f2-d2eb303455b8', 'TUESDAY', '09:00:00', '16:30:00', '13:00:00', '14:00:00', 30, true),
+    ('4809e1a7-7dec-43b0-b5f2-d2eb303455b8', 'THURSDAY', '09:00:00', '16:30:00', '13:00:00', '14:00:00', 30, true);
 
-INSERT INTO schedule_template (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
+-- Courtney Bright (Psychiatrist)
+INSERT INTO schedule_templates (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
 VALUES
-    ('9943502e-0c8d-48e7-a610-f0c990c02b4e', 'MONDAY', '09:00:00', '17:00:00', 30, '13:00:00', '14:00:00', true),
-    ('9943502e-0c8d-48e7-a610-f0c990c02b4e', 'WEDNESDAY', '09:00:00', '17:00:00', 30, '13:00:00', '14:00:00', true),
-    ('9943502e-0c8d-48e7-a610-f0c990c02b4e', 'FRIDAY', '10:00:00', '14:00:00', 30, '12:00:00', '13:00:00', true);
+    ('9943502e-0c8d-48e7-a610-f0c990c02b4e', 'MONDAY', '09:00:00', '17:00:00', '13:00:00', '14:00:00', 30, true),
+    ('9943502e-0c8d-48e7-a610-f0c990c02b4e', 'WEDNESDAY', '09:00:00', '17:00:00', '13:00:00', '14:00:00', 30, true),
+    ('9943502e-0c8d-48e7-a610-f0c990c02b4e', 'FRIDAY', '10:00:00', '14:00:00', '12:00:00', '13:00:00', 30, true);
 
-INSERT INTO schedule_template (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
+-- Brian Locks (Pulmonologist)
+INSERT INTO schedule_templates (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
 VALUES
-    ('df5e1e5a-857e-4d7a-83ad-66f211af9a61', 'TUESDAY', '08:00:00', '16:00:00', 30, '12:00:00', '13:00:00', true),
-    ('df5e1e5a-857e-4d7a-83ad-66f211af9a61', 'THURSDAY', '08:00:00', '14:00:00', 30, '12:00:00', '13:00:00', true),
-    ('df5e1e5a-857e-4d7a-83ad-66f211af9a61', 'SATURDAY', '09:00:00', '13:00:00', 30, '12:00:00', '13:00:00', true);
+    ('df5e1e5a-857e-4d7a-83ad-66f211af9a61', 'TUESDAY', '08:00:00', '16:00:00', '12:00:00', '13:00:00', 30, true),
+    ('df5e1e5a-857e-4d7a-83ad-66f211af9a61', 'THURSDAY', '08:00:00', '14:00:00', '12:00:00', '13:00:00', 30, true),
+    ('df5e1e5a-857e-4d7a-83ad-66f211af9a61', 'SATURDAY', '09:00:00', '13:00:00', '12:00:00', '13:00:00', 30, true);
 
-INSERT INTO schedule_template (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
+-- Agnieszka Biawa (Dermatologist)
+INSERT INTO schedule_templates (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
 VALUES
-    ('f8428687-779d-432e-908b-8926a267081a', 'WEDNESDAY', '09:00:00', '16:00:00', 30, '12:00:00', '13:00:00', true),
-    ('f8428687-779d-432e-908b-8926a267081a', 'FRIDAY', '10:00:00', '15:00:00', 30, '12:00:00', '13:00:00', true);
+    ('f8428687-779d-432e-908b-8926a267081a', 'WEDNESDAY', '09:00:00', '16:00:00', '12:00:00', '13:00:00', 30, true),
+    ('f8428687-779d-432e-908b-8926a267081a', 'FRIDAY', '10:00:00', '15:00:00', '12:00:00', '13:00:00', 30, true);
 
-INSERT INTO schedule_template (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
+-- Claude Fort (Cardiologist)
+INSERT INTO schedule_templates (doctor_id, day_of_week, start_time, end_time, break_start_time, break_end_time, slot_duration_of_minutes, active)
 VALUES
-    ('048a27f9-08e1-4032-aac8-bdbd85f051c8', 'TUESDAY', '08:25:00', '16:00:00', 30, '12:00:00', '13:30:00', true),
-    ('048a27f9-08e1-4032-aac8-bdbd85f051c8', 'WEDNESDAY', '12:00:00', '17:00:00', 30, '14:00:00', '15:00:00', true);
+    ('048a27f9-08e1-4032-aac8-bdbd85f051c8', 'TUESDAY', '08:25:00', '16:00:00', '12:00:00', '13:30:00', 30, true),
+    ('048a27f9-08e1-4032-aac8-bdbd85f051c8', 'WEDNESDAY', '12:00:00', '17:00:00', '14:00:00', '15:00:00', 30, true);
