@@ -44,7 +44,7 @@ public class ScheduleService {
 
         ScheduleTemplate scheduleTemplate = ScheduleTemplate.builder()
                 .doctorId(doctorId)
-                .customDayOfTheWeek(CustomDayOfTheWeek.valueOf(scheduleTemplateRequest.getDayOfTheWeek()))
+                .customDayOfTheWeek(scheduleTemplateRequest.getDayOfTheWeek())
                 .startTime(scheduleTemplateRequest.getStartTime())
                 .endTime(scheduleTemplateRequest.getEndTime())
                 .breakStartTime(scheduleTemplateRequest.getBreakStartTime())
@@ -121,7 +121,7 @@ public class ScheduleService {
         ScheduleOverride scheduleOverride = ScheduleOverride.builder()
                 .doctorId(doctorId)
                 .date(scheduleOverrideRequest.getDate())
-                .overrideType(OverrideType.valueOf(scheduleOverrideRequest.getOverrideType()))
+                .overrideType(scheduleOverrideRequest.getOverrideType())
                 .startTime(scheduleOverrideRequest.getStartTime())
                 .endTime(scheduleOverrideRequest.getEndTime())
                 .slotDurationOfMinutes(scheduleOverrideRequest.getSlotDurationOfMinutes())

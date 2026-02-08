@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.com.doctorservice.additional.OverrideType;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -19,8 +20,8 @@ public class ScheduleOverrideRequest {
     @NotNull(message = "Date required")
     private LocalDate date;
 
-    @NotBlank(message = "Override type is required (EMERGENCY, CUSTOM_HOURS, UNAVAILABLE)")
-    private String overrideType;
+    @NotBlank(message = "Override type is required")
+    private OverrideType overrideType;
 
     @NotNull(message = "Start time required")
     private LocalTime startTime;

@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.com.doctorservice.additional.CustomDayOfTheWeek;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -17,7 +18,7 @@ import java.time.LocalTime;
 @Builder
 public class ScheduleTemplateRequest {
     @NotBlank(message = "Day of week required")
-    private String dayOfTheWeek;
+    private CustomDayOfTheWeek dayOfTheWeek;
 
     @NotNull(message = "Start time required")
     private LocalTime startTime;
