@@ -65,7 +65,7 @@ public class ScheduleServiceTest {
         doctorId = UUID.randomUUID();
 
         this.scheduleTemplateRequest = ScheduleTemplateRequest.builder()
-                .dayOfTheWeek(CustomDayOfTheWeek.MONDAY.toString())
+                .dayOfTheWeek(CustomDayOfTheWeek.MONDAY)
                 .startTime(LocalTime.of(9, 0))
                 .endTime(LocalTime.of(17, 0))
                 .breakStartTime(LocalTime.of(13, 0))
@@ -75,7 +75,7 @@ public class ScheduleServiceTest {
 
         this.scheduleOverrideRequest = ScheduleOverrideRequest.builder()
                 .date(LocalDate.of(2026, 6, 23))
-                .overrideType(OverrideType.UNAVAILABLE.toString())
+                .overrideType(OverrideType.UNAVAILABLE)
                 .startTime(LocalTime.of(9, 0))
                 .endTime(LocalTime.of(17, 0))
                 .slotDurationOfMinutes(30)
