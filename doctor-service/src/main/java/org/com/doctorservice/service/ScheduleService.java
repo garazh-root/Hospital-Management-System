@@ -38,13 +38,13 @@ public class ScheduleService {
 
     @Transactional
     public ScheduleTemplateResponse createScheduleTemplate(UUID doctorId, ScheduleTemplateRequest scheduleTemplateRequest) {
-        if(!doctorRepository.existsById(doctorId)) {
+        if (!doctorRepository.existsById(doctorId)) {
             throw new DoctorNotFoundException(DoctorServiceMessages.DOCTOR_NOT_FOUND.getMessage());
         }
 
         ScheduleTemplate scheduleTemplate = ScheduleTemplate.builder()
                 .doctorId(doctorId)
-                .customDayOfTheWeek(CustomDayOfTheWeek.valueOf(scheduleTemplateRequest.getDayOfTheWeek()))
+                .customDayOfTheWeek(scheduleTemplateRequest.getDayOfTheWeek())
                 .startTime(scheduleTemplateRequest.getStartTime())
                 .endTime(scheduleTemplateRequest.getEndTime())
                 .breakStartTime(scheduleTemplateRequest.getBreakStartTime())
@@ -109,19 +109,19 @@ public class ScheduleService {
 
     @Transactional
     public ScheduleOverrideResponse createScheduleOverride(UUID doctorId, ScheduleOverrideRequest scheduleOverrideRequest) {
-       if(!doctorRepository.existsById(doctorId)) {
-           throw new DoctorNotFoundException(DoctorServiceMessages.DOCTOR_NOT_FOUND.getMessage());
-       }
+        if (!doctorRepository.existsById(doctorId)) {
+            throw new DoctorNotFoundException(DoctorServiceMessages.DOCTOR_NOT_FOUND.getMessage());
+        }
 
         List<ScheduleOverride> conflictOverrides = scheduleOverrideRepository.findByDoctorIdAndDate(doctorId, scheduleOverrideRequest.getDate());
-        if(!conflictOverrides.isEmpty()) {
+        if (!conflictOverrides.isEmpty()) {
             throw new OverrideAlreadyExistsException(DoctorServiceMessages.OVERRIDE_ALREADY_EXISTS.getMessage());
         }
 
         ScheduleOverride scheduleOverride = ScheduleOverride.builder()
                 .doctorId(doctorId)
                 .date(scheduleOverrideRequest.getDate())
-                .overrideType(OverrideType.valueOf(scheduleOverrideRequest.getOverrideType()))
+                .overrideType(scheduleOverrideRequest.getOverrideType())
                 .startTime(scheduleOverrideRequest.getStartTime())
                 .endTime(scheduleOverrideRequest.getEndTime())
                 .slotDurationOfMinutes(scheduleOverrideRequest.getSlotDurationOfMinutes())
@@ -181,7 +181,7 @@ public class ScheduleService {
         LocalDate effectiveFrom = scheduleTemplate.getEffectiveFrom();
         LocalDate effectiveTo = scheduleTemplate.getEffectiveTo();
 
-        if(effectiveFrom == null && effectiveTo == null) {
+        if (effectiveFrom == null && effectiveTo == null) {
             return true;
         }
 
