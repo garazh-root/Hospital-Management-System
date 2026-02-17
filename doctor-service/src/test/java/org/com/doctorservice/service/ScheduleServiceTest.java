@@ -56,7 +56,6 @@ public class ScheduleServiceTest {
     private ScheduleOverride scheduleOverride;
     private ScheduleTemplateResponse scheduleTemplateResponse;
     private ScheduleOverrideResponse scheduleOverrideResponse;
-    private ScheduleResponse scheduleResponse;
 
     @BeforeEach
     void setUp() {
