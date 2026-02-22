@@ -15,11 +15,4 @@ import java.util.UUID;
 @Repository
 public interface MeetingRepository extends MongoRepository<Meeting, String> {
 
-    List<Meeting> findByPatientId(UUID patientId);
-    List<Meeting> findByDoctorId(UUID doctorId);
-    List<Meeting> findByStatus(MeetingStatus meetingStatus);
-    List<Meeting> findByDoctorIdAndStatusAndStartTimeBetween(
-            UUID doctorId, MeetingStatus meetingStatus, Instant meetingStartTime, Instant meetingEndTime);
-    List<Meeting> findByPatientIdAndStatusAndStartTimeBetween(
-            UUID patientId, MeetingStatus meetingStatus, Instant meetingStartTime, Instant meetingEndTime);
 }

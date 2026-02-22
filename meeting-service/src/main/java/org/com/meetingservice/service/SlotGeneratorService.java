@@ -1,11 +1,7 @@
 package org.com.meetingservice.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
-public class MeetingService {
-
-
+public class SlotGeneratorService {
 }
