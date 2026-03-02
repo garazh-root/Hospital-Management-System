@@ -13,10 +13,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.UUID;
+import java.time.LocalDateTime;import java.util.UUID;
 
 @Document(collection = "meeting")
 @Data
@@ -36,41 +33,20 @@ public class Meeting {
     @NotNull
     private UUID patientId;
 
-    @Field(name = "patient_first_name")
+    @Field(name = "meeting_date_time")
     @NotNull
-    private String patientFirstName;
+    private LocalDateTime meetingDateTime;
 
-    @Field(name = "patient_last_name")
+    @Field(name = "duration_of_minutes")
     @NotNull
-    private String patientLastName;
-
-    @Field(name = "doctor_first_name")
-    @NotNull
-    private String doctorFirstName;
-
-    @Field(name = "doctor_last_name")
-    @NotNull
-    private String doctorLastName;
-
-    @Field(name = "doctor_specialization")
-    @NotNull
-    private String doctorSpecialization;
-
-    @Field(name = "date")
-    @NotNull
-    private Instant date;
-
-    @Field(name = "start_time")
-    @NotNull
-    private Instant startTime;
-
-    @Field(name = "end_time")
-    @NotNull
-    private Instant endTime;
+    private Integer durationOfMinutes;
 
     @Field(name = "status")
     @NotNull
     private MeetingStatus status;
+
+    @Field(name = "reason")
+    private String reason;
 
     @Field(name = "notes")
     private String notes;

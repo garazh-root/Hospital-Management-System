@@ -7,14 +7,6 @@ spring:
   main:
     banner-mode: off
 
-eureka:
-  client:
-    service-url:
-      defaultZone: http://meeting-service:1012/eureka/  # Points to meeting-service container
-  instance:
-    prefer-ip-address: true
-    hostname: doctor-service
-
 server:
   port: 1011
 
