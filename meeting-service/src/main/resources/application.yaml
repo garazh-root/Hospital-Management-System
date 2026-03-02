@@ -2,22 +2,12 @@ spring:
   application:
     name: meeting-service
 
-eureka:
- instance:
-    hostname: meeting-service
-    prefer-ip-address: true
- client:
-    service-url:
-      defaultZone: http://meeting-service:1012/eureka/
-    fetch-registry: true
-    register-with-eureka: true
-
 feign:
   client:
     config:
       default:
-       connectTimeout: 5000
-       readTimeout: 5000
+       connectTimeout: 4000
+       readTimeout: 4000
        loggerLevel: full
   circuitBreaker:
    enabled: true
