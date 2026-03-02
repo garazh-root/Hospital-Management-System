@@ -8,7 +8,8 @@ public enum MeetingServiceMessages {
     INVALID_STATUS("Invalid status"),
     SCHEDULE_NOT_MATCHING("Schedule not matching"),
     INVALID_MEETING_EXCEPTION("Invalid meeting"),
-    MEETING_CONFLICT("Meeting conflict occurred"),;
+    MEETING_CONFLICT("Meeting conflict occurred"),
+    SLOT_NOT_AVAILABLE("Meeting slot not available");
 
     private final String message;
 
