@@ -1,5 +1,7 @@
 package org.com.meetingservice.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.com.meetingservice.additional.MeetingStatus;
 import org.com.meetingservice.dto.AvailableSlotResponse;
 import org.com.meetingservice.dto.MeetingResponse;
@@ -14,6 +16,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/meeting")
+@Tag(name = "Meeting", description = "Api for booking meetings")
 public class MeetingController {
 
     private MeetingService meetingService;
@@ -23,6 +26,7 @@ public class MeetingController {
     }
 
     @RequestMapping("/slots/{doctorId}")
+    @Operation(summary = "Get available slots for doctor by doctor id")
     public ResponseEntity<List<AvailableSlotResponse>> getAvailableSlots(
             @PathVariable String doctorId,
             @RequestParam LocalDate date
@@ -32,12 +36,14 @@ public class MeetingController {
     }
 
     @PostMapping
+    @Operation(summary = "Book a meeting")
     public ResponseEntity<MeetingResponse> bookMeeting(@RequestBody MeetingRequest meetingRequest) {
         MeetingResponse meetingResponse = meetingService.bookMeeting(meetingRequest);
         return ResponseEntity.ok().body(meetingResponse);
     }
 
     @GetMapping("/filterByDoctorIdAndDateBetween/{doctorId}")
+    @Operation(summary = "Get meetings by doctor id and date between")
     public ResponseEntity<List<MeetingResponse>> findByDoctorIdAndDateTimeBetween(
             @PathVariable UUID doctorId,
             @RequestParam LocalDate startDate,
@@ -48,6 +54,7 @@ public class MeetingController {
     }
 
     @GetMapping("filterByDoctorIdAndDateBetweenAndStatus/{doctorId}")
+    @Operation(summary = "Get meetings by doctor id and date between and status")
     public ResponseEntity<List<MeetingResponse>> findByDoctorIdAndDateTimeBetweenAndStatus(
             @PathVariable UUID doctorId,
             @RequestParam LocalDate startDate,
@@ -61,12 +68,14 @@ public class MeetingController {
     }
 
     @GetMapping("/filterByPatientId/{patientId}")
+    @Operation(summary = "Get meetings by patient id")
     public ResponseEntity<List<MeetingResponse>> findByPatientId(@PathVariable UUID patientId) {
         List<MeetingResponse> meetingResponseList = meetingService.findByPatientId(patientId);
         return ResponseEntity.ok().body(meetingResponseList);
     }
 
     @DeleteMapping("/{meetingId}")
+    @Operation(summary = "Cancel meeting")
     public ResponseEntity<MeetingResponse> cancelMeeting(@PathVariable String meetingId) {
         meetingService.cancelMeeting(meetingId);
         return ResponseEntity.noContent().build();
