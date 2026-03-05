@@ -25,7 +25,7 @@ public class MeetingController {
         this.meetingService = meetingService;
     }
 
-    @RequestMapping("/slots/{doctorId}")
+    @GetMapping("/slots/{doctorId}")
     @Operation(summary = "Get available slots for doctor by doctor id")
     public ResponseEntity<List<AvailableSlotResponse>> getAvailableSlots(
             @PathVariable String doctorId,
