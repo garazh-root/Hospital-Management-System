@@ -52,18 +52,6 @@ public class MeetingServiceIntegrationTest {
         patientId = UUID.randomUUID();
         doctorId = UUID.randomUUID();
         meetingId = "f4a27a8caa4c354ee18be994";
-
-        meeting = Meeting.builder()
-                .id(meetingId)
-                .patientId(patientId)
-                .doctorId(doctorId)
-                .startTime(Instant.parse("2024-03-20T10:00:00Z"))
-                .endTime(Instant.parse("2024-03-20T11:00:00Z"))
-                .status(MeetingStatus.CONFIRMED)
-                .notes("Regular checkup")
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now())
-                .build();
     }
 
     @AfterEach
