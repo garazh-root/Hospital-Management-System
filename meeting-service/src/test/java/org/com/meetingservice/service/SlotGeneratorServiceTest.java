@@ -1,200 +1,128 @@
 package org.com.meetingservice.service;
-//
-//import org.com.meetingservice.dto.AvailableSlotResponse;
-//import org.com.meetingservice.dto.ScheduleOverrideDTO;
-//import org.com.meetingservice.dto.ScheduleResponse;
-//import org.com.meetingservice.dto.ScheduleTemplateDTO;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//
-//import java.time.LocalDate;
-//import java.time.LocalDateTime;
-//import java.time.LocalTime;
-//import java.util.Collections;
-//import java.util.List;
-//import java.util.NoSuchElementException;
-//
-//import static org.assertj.core.api.Assertions.assertThat;
-//import static org.assertj.core.api.Assertions.assertThatThrownBy;
-//
+
+import org.com.meetingservice.dto.AvailableSlotResponse;
+import org.com.meetingservice.dto.ResolvedSchedule;
+import org.com.meetingservice.dto.ScheduleResponse;
+import org.com.meetingservice.service.factory.SlotFactory;
+import org.com.meetingservice.service.filter.BookedSlotStrategy;
+import org.com.meetingservice.service.filter.SlotFilterContext;
+import org.com.meetingservice.service.filter.SlotStrategy;
+import org.com.meetingservice.service.resolver.ScheduleResolver;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Collections;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
 public class SlotGeneratorServiceTest {
 
+    @Mock
+    private BookedSlotStrategy bookedSlotStrategyA;
+
+    @Mock
+    private BookedSlotStrategy bookedSlotStrategyB;
+
+    @Mock
+    private ScheduleResolver scheduleResolver;
+
+    private SlotStrategy slotStrategy;
+
+    private SlotGeneratorService slotGeneratorService;
+
+    @Mock
+    private SlotFactory slotFactory;
+
+    private static final LocalDate DATE = LocalDate.of(2025, 5, 1);
+
+    @Test
+    void generateSlotsShouldReturnEmptyListWhenDoctorIsUnavailable() {
+        slotGeneratorService = new SlotGeneratorService(slotFactory, scheduleResolver, Collections.emptyList());
+        ScheduleResponse scheduleResponse = mock(ScheduleResponse.class);
+
+        when(scheduleResolver.resolve(scheduleResponse, DATE)).thenReturn(ResolvedSchedule.notAvailable());
+
+        List<AvailableSlotResponse> responses = slotGeneratorService.generateAvailableSlots(scheduleResponse, DATE, Collections.emptyList());
+
+        assertThat(responses).isEmpty();
+    }
+
+    @Test
+    void generateSlotsShouldReturnAdjustedSlotsWhenAllFilterApplied() {
+        slotGeneratorService = new SlotGeneratorService(slotFactory, scheduleResolver, List.of(bookedSlotStrategyA, bookedSlotStrategyB));
+        ScheduleResponse scheduleResponse = mock(ScheduleResponse.class);
+
+        ResolvedSchedule resolvedSchedule = ResolvedSchedule.fromOverride(
+                LocalTime.of(9, 0), LocalTime.of(10, 0), 30
+        );
+
+        List<AvailableSlotResponse> rawSlots = List.of(
+                slot("09:00"), slot("09:30")
+        );
+        List<AvailableSlotResponse> afterFilterA = List.of(slot("09:00"), slot("09:30"));
+        List<AvailableSlotResponse> afterFilterB = List.of(slot("09:00"));
+
+        when(scheduleResolver.resolve(scheduleResponse, DATE)).thenReturn(resolvedSchedule);
+        when(slotFactory.generateSlots(DATE, resolvedSchedule)).thenReturn(rawSlots);
+        when(bookedSlotStrategyA.filter(eq(rawSlots), any(SlotFilterContext.class))).thenReturn(afterFilterA);
+        when(bookedSlotStrategyB.filter(eq(afterFilterA), any(SlotFilterContext.class))).thenReturn(afterFilterB);
+
+        List<AvailableSlotResponse> result = slotGeneratorService.generateAvailableSlots(scheduleResponse, DATE, Collections.emptyList());
+
+        assertThat(result.size()).isEqualTo(1);
+    }
+
+    @Test
+    void generateSlotsShouldPassBookedMeetingsInFilterContext() {
+        slotGeneratorService = new SlotGeneratorService(slotFactory, scheduleResolver, List.of(bookedSlotStrategyA));
+        ScheduleResponse scheduleResponse = mock(ScheduleResponse.class);
+
+        ResolvedSchedule resolvedSchedule = ResolvedSchedule.fromOverride(
+                LocalTime.of(9, 0), LocalTime.of(10, 0), 30
+        );
+
+        List<LocalDateTime> bookedMeetings = List.of(LocalDateTime.of(2025, 7, 7, 9, 0));
+
+        when(scheduleResolver.resolve(scheduleResponse, DATE)).thenReturn(resolvedSchedule);
+        when(slotFactory.generateSlots(any(), any())).thenReturn(List.of());
+        when(bookedSlotStrategyA.filter(any(), any())).thenReturn(List.of());
+
+        List<AvailableSlotResponse> result = slotGeneratorService.generateAvailableSlots(scheduleResponse, DATE, bookedMeetings);
+
+        verify(bookedSlotStrategyA).filter(any(), argThat(ctx ->
+                ctx.date().equals(DATE) && ctx.bookedMeetings().equals(bookedMeetings)));
+    }
+
+    @Test
+    void generateSlotsShouldWorkWithNoFilters() {
+        slotGeneratorService = new SlotGeneratorService(slotFactory, scheduleResolver, Collections.emptyList());
+        ScheduleResponse scheduleResponse = mock(ScheduleResponse.class);
+
+        ResolvedSchedule resolvedSchedule = ResolvedSchedule.fromOverride(
+                LocalTime.of(9, 0), LocalTime.of(10, 0), 30
+        );
+
+        List<AvailableSlotResponse> rawSlots = List.of(slot("09:00"), slot("09:30"));
+
+        when(scheduleResolver.resolve(scheduleResponse, DATE)).thenReturn(resolvedSchedule);
+        when(slotFactory.generateSlots(any(), any())).thenReturn(rawSlots);
+
+        List<AvailableSlotResponse> result = slotGeneratorService.generateAvailableSlots(scheduleResponse, DATE, Collections.emptyList());
+
+        assertThat(result.size()).isEqualTo(2);
+    }
+
+    private AvailableSlotResponse slot(String startTime) {
+        return new AvailableSlotResponse(DATE.toString(), startTime, "00:00", "30");
+    }
 }
-//
-//    private SlotGeneratorService slotGeneratorService;
-//
-//    private static final LocalDate DATE = LocalDate.of(2026, 6, 1);
-//
-//    @BeforeEach
-//    void setUp() {
-//        slotGeneratorService = new SlotGeneratorService();
-//    }
-//
-//    @Test
-//    void generateSlotsShouldGenerateSlotsAndReturnListOfGeneratedSlotsResponse() {
-//        ScheduleTemplateDTO template = templateBuilder(
-//                "32daefcc8e0cafd8ceefdad3", "e1dd85d5-29e9-47bb-8124-9d558a5157cc", "MONDAY", "09:00",
-//                "10:00", "12:00", "13:00", "30", null, null
-//        );
-//
-//        ScheduleResponse responses = new ScheduleResponse(List.of(template), Collections.emptyList());
-//
-//        List<AvailableSlotResponse> listOfAvailableSlots = slotGeneratorService.generateAvailableSlots(
-//                responses, DATE, Collections.emptyList()
-//        );
-//
-//        assertThat(listOfAvailableSlots).hasSize(2);
-//        assertThat(listOfAvailableSlots.getFirst().startTime()).isEqualTo("09:00");
-//        assertThat(listOfAvailableSlots.getFirst().endTime()).isEqualTo("09:30");
-//        assertThat(listOfAvailableSlots.getLast().startTime()).isEqualTo("09:30");
-//        assertThat(listOfAvailableSlots.getLast().endTime()).isEqualTo("10:00");
-//    }
-//
-//    @Test
-//    void generateSlotsShouldExcludeBreakTime () {
-//        ScheduleTemplateDTO template = templateBuilder(
-//                "32daefcc8e0cafd8ceefdad3", "e1dd85d5-29e9-47bb-8124-9d558a5157cc", "MONDAY", "09:00",
-//                "14:00", "12:00", "13:00", "30", null, null
-//        );
-//
-//        ScheduleResponse responses = new ScheduleResponse(List.of(template), Collections.emptyList());
-//
-//        List<AvailableSlotResponse> listOfAvailableSlots = slotGeneratorService.generateAvailableSlots(
-//                responses, DATE, Collections.emptyList()
-//        );
-//
-//        List<String> list = listOfAvailableSlots.stream().map(AvailableSlotResponse::startTime).toList();
-//
-//        assertThat(listOfAvailableSlots).hasSize(8);
-//        assertThat(list).doesNotContain("12:00");
-//        assertThat(list).doesNotContain("12:30");
-//    }
-//
-//    @Test
-//    void generateSlotsShouldExcludeBookedSlots() {
-//        ScheduleTemplateDTO template = templateBuilder(
-//                "32daefcc8e0cafd8ceefdad3", "e1dd85d5-29e9-47bb-8124-9d558a5157cc", "MONDAY", "09:00",
-//                "10:00", "12:00", "13:00", "30", null, null
-//        );
-//
-//        ScheduleResponse responses = new ScheduleResponse(List.of(template), Collections.emptyList());
-//
-//        List<LocalDateTime> bookedList = List.of(
-//                LocalDateTime.of(DATE, LocalTime.of(9, 0))
-//        );
-//
-//        List<AvailableSlotResponse> listOfAvailableSlots = slotGeneratorService.generateAvailableSlots(
-//                responses, DATE, bookedList
-//        );
-//
-//        assertThat(listOfAvailableSlots).extracting(AvailableSlotResponse::startTime)
-//                .doesNotContain("09:00");
-//    }
-//
-//    @Test
-//    void generateSlotsShouldIncludeDateInEachResponse() {
-//        ScheduleTemplateDTO template = templateBuilder(
-//                "32daefcc8e0cafd8ceefdad3", "e1dd85d5-29e9-47bb-8124-9d558a5157cc", "MONDAY", "09:00",
-//                "10:00", "12:00", "13:00", "30", null, null
-//        );
-//
-//        ScheduleResponse responses = new ScheduleResponse(List.of(template), Collections.emptyList());
-//
-//        List<AvailableSlotResponse> listOfAvailableSlots = slotGeneratorService.generateAvailableSlots(
-//                responses, DATE, Collections.emptyList()
-//        );
-//
-//        assertThat(listOfAvailableSlots).allSatisfy(availableSlot -> availableSlot.date().equals(DATE));
-//    }
-//
-//    @Test
-//    void generateAvailableSlotsShouldReturnEmptyListIfAllSlotsAreBooked() {
-//        ScheduleTemplateDTO template = templateBuilder(
-//                "32daefcc8e0cafd8ceefdad3", "e1dd85d5-29e9-47bb-8124-9d558a5157cc", "MONDAY", "09:00",
-//                "10:00", "12:00", "13:00", "30", null, null
-//        );
-//
-//        List<LocalDateTime> bookedList = List.of(
-//                LocalDateTime.of(DATE, LocalTime.of(9, 0)),
-//                LocalDateTime.of(DATE, LocalTime.of(9, 30))
-//        );
-//
-//        ScheduleResponse responses = new ScheduleResponse(List.of(template), Collections.emptyList());
-//
-//        List<AvailableSlotResponse> listOfAvailableSlots = slotGeneratorService.generateAvailableSlots(
-//                responses, DATE, bookedList
-//        );
-//
-//        assertThat(listOfAvailableSlots).isEmpty();
-//    }
-//
-//    @Test
-//    void generateAvailableSlotsShouldReturnEmptyListIfOverrideIsEmpty() {
-//        ScheduleTemplateDTO template = templateBuilder(
-//                "32daefcc8e0cafd8ceefdad3", "e1dd85d5-29e9-47bb-8124-9d558a5157cc", "MONDAY", "09:00",
-//                "10:00", "12:00", "13:00", "30", null, null
-//        );
-//
-//        ScheduleOverrideDTO override = new ScheduleOverrideDTO(
-//                "beb22788-c5df-485b-9fb0-4484f6eb0d56", "9eba8aae-5a8d-47cb-b21b-f692037e01a5", DATE.toString(),
-//                "UNAVAILABLE", null, null, null, null);
-//
-//        ScheduleResponse responses = new ScheduleResponse(List.of(template), List.of(override));
-//
-//        List<AvailableSlotResponse> listOfAvailableSlots = slotGeneratorService.generateAvailableSlots(
-//                responses, DATE, Collections.emptyList()
-//        );
-//
-//        assertThat(listOfAvailableSlots).isEmpty();
-//    }
-//
-//    @Test
-//    void generateAvailableSlotsShouldReturnListOfCustomHoursSLots () {
-//        ScheduleTemplateDTO template = templateBuilder(
-//                "32daefcc8e0cafd8ceefdad3", "e1dd85d5-29e9-47bb-8124-9d558a5157cc", "MONDAY", "09:00",
-//                "10:00", "12:00", "13:00", "30", null, null
-//        );
-//
-//        ScheduleOverrideDTO override = new ScheduleOverrideDTO(
-//                "beb22788-c5df-485b-9fb0-4484f6eb0d56", "9eba8aae-5a8d-47cb-b21b-f692037e01a5", DATE.toString(),
-//                "CUSTOM_HOURS", "14:00", "15:00", "30", null);
-//
-//        ScheduleResponse responses = new ScheduleResponse(List.of(template), List.of(override));
-//
-//        List<AvailableSlotResponse> listOfAvailableSlots = slotGeneratorService.generateAvailableSlots(
-//                responses, DATE, Collections.emptyList()
-//        );
-//
-//        assertThat(listOfAvailableSlots).extracting(AvailableSlotResponse::startTime)
-//                .contains("14:00", "14:30");
-//    }
-//
-//    @Test
-//    void generateAvailableSlotsShouldThrowWhenNoTemplatesFound () {
-//        ScheduleTemplateDTO template = templateBuilder(
-//                "32daefcc8e0cafd8ceefdad3", "e1dd85d5-29e9-47bb-8124-9d558a5157cc", "TUESDAY", "09:00",
-//                "10:00", "12:00", "13:00", "30", null, null
-//        );
-//
-//        ScheduleResponse responses = new ScheduleResponse(List.of(template), Collections.emptyList());
-//
-//        assertThatThrownBy(() -> slotGeneratorService.generateAvailableSlots(responses, DATE, Collections.emptyList()))
-//                .isInstanceOf(NoSuchElementException.class);
-//    }
-//
-//    private ScheduleTemplateDTO templateBuilder(
-//            String id,
-//            String doctorId,
-//            String dayOfTheWeek,
-//            String startTime,
-//            String endTime,
-//            String breakStartTime,
-//            String breakEndTime,
-//            String slotDurationOfMinutes,
-//            String effectiveFrom,
-//            String effectiveTo
-//    ) {
-//        return new ScheduleTemplateDTO(
-//               id, doctorId, dayOfTheWeek, startTime, endTime, breakStartTime, breakEndTime, slotDurationOfMinutes, effectiveFrom, effectiveTo);
-//    }
-//}
