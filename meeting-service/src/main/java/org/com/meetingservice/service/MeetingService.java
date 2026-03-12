@@ -82,27 +82,18 @@ public class MeetingService {
         LocalDateTime startDate = start.atStartOfDay();
         LocalDateTime endDate = end.atTime(LocalTime.MAX);
 
-        return meetingRepository.findByDoctorIdAndMeetingDateTimeBetween(doctorId, startDate, endDate)
-                .stream()
-                .map(MeetingMapper::toResponseDTO)
-                .toList();
+        return mapList(meetingRepository.findByDoctorIdAndMeetingDateTimeBetween(doctorId, startDate, endDate));
     }
 
     public List<MeetingResponse> findByDoctorIdAndDateTimeBetweenAndStatus(UUID doctorId, LocalDate start, LocalDate end, MeetingStatus status) {
         LocalDateTime startDate = start.atStartOfDay();
         LocalDateTime endDate = end.atTime(LocalTime.MAX);
 
-        return meetingRepository.findByDoctorIdAndMeetingDateTimeBetweenAndStatus(doctorId, startDate, endDate, status)
-                .stream()
-                .map(MeetingMapper::toResponseDTO)
-                .toList();
+        return mapList(meetingRepository.findByDoctorIdAndMeetingDateTimeBetweenAndStatus(doctorId, startDate, endDate, status));
     }
 
     public List<MeetingResponse> findByPatientId(UUID patientId) {
-        return meetingRepository.findByPatientId(patientId)
-                .stream()
-                .map(MeetingMapper::toResponseDTO)
-                .toList();
+        return mapList(meetingRepository.findByPatientId(patientId));
     }
 
     public void cancelMeeting(String meetingId) {
@@ -112,5 +103,11 @@ public class MeetingService {
         meeting.setUpdatedAt(Instant.now());
 
         meetingRepository.save(meeting);
+    }
+
+    public List<MeetingResponse> mapList(List<Meeting> meetings) {
+        return meetings.stream()
+                .map(MeetingMapper::toResponseDTO)
+                .toList();
     }
 }
