@@ -1,4 +1,4 @@
 ### GET request to example server
-GET localhost:1011/schedule/overrides/56a3f48c-bca3-4b60-ac48-6db4ed9382ad
+GET localhost:1013/api/doctors/schedule/overrides/56a3f48c-bca3-4b60-ac48-6db4ed9382ad
 
 ###

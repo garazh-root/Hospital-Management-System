@@ -1,3 +1,3 @@
 ### GET request to example server
-GET localhost:1011/doc/filterBySpecialization?specialization=Cardiologist
+GET localhost:1013/api/doctors/doc/filterBySpecialization?specialization=Cardiologist
 ###

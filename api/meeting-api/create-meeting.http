@@ -1,5 +1,5 @@
 ### GET request to example server
-POST localhost:1012/meeting
+POST localhost:1013/api/meetings/meeting
 Content-Type: application/json
 
 {

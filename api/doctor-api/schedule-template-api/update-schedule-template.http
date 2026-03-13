@@ -1,5 +1,5 @@
 ### GET request to example server
-PUT localhost:1011/schedule/templates/58e70a8b-4d3a-4058-b68d-4a122d825f20
+PUT localhost:1013/schedule/templates/58e70a8b-4d3a-4058-b68d-4a122d825f20
 Content-Type: application/json
 
 {

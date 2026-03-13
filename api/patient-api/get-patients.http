@@ -1,4 +1,4 @@
 ### GET request to get all patients
-GET http://localhost:1010/patient/patients
+GET http://localhost:1013/api/patients/patient/patients
 
 ###

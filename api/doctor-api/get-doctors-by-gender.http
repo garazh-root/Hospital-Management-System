@@ -1,4 +1,4 @@
 ### GET request to example server
-GET localhost:1011/doc/filterByGender?gender=FEMALE
+GET localhost:1013/api/doctors/doc/filterByGender?gender=FEMALE
 
 ###

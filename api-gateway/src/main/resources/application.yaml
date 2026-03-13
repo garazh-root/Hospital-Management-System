@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+         routes:
+
+         - id: patient-service
+           uri: http://patient-service:1010
+           predicates:
+             - Path=/api/patients/**
+           filters:
+             - RewritePath=/api/patients/(?<segment>.*), /${segment}
+
+         - id: doctor-service
+           uri: http://doctor-service:1011
+           predicates:
+             - Path=/api/doctors/**
+           filters:
+             - RewritePath=/api/doctors/(?<segment>.*), /${segment}
+
+         - id: meeting-service
+           uri: http://meeting-service:1012
+           predicates:
+             - Path=/api/meetings/**
+           filters:
+             - RewritePath=/api/meetings/(?<segment>.*), /${segment}
+
+server:
+  port: 1013
+
+logging:
+  level:
+    org.springframework.cloud.gateway: TRACE
+    reactor.netty: DEBUG
