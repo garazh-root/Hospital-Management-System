@@ -1,4 +1,4 @@
 ### GET request to example server
-GET localhost:1012/meeting/filterByDoctorIdAndDateBetweenAndStatus/bffe3ab9-973c-4d04-9363-5f754ad228d6?startDate=2026-03-01&endDate=2026-03-31&status=CONFIRMED
+GET localhost:1013/api/meetings/meeting/filterByDoctorIdAndDateBetweenAndStatus/bffe3ab9-973c-4d04-9363-5f754ad228d6?startDate=2026-03-01&endDate=2026-03-31&status=CONFIRMED
 
 ###

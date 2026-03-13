@@ -1,4 +1,4 @@
 ### GET request to example server
-GET localhost:1012/meeting/filterByPatientId/f43d3b0c-fa24-43ba-be2f-543ef1036dbf
+GET localhost:1013/api/meetings/meeting/filterByPatientId/f43d3b0c-fa24-43ba-be2f-543ef1036dbf
 
 ###

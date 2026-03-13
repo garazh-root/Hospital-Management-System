@@ -1,5 +1,5 @@
 ### GET request to example server
-POST localhost:1011/schedule/override/56a3f48c-bca3-4b60-ac48-6db4ed9382ad
+POST localhost:1013/api/doctors/schedule/override/56a3f48c-bca3-4b60-ac48-6db4ed9382ad
 Content-Type: application/json
 
 {

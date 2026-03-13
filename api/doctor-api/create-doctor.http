@@ -1,12 +1,12 @@
 ### POST request to example server
-POST localhost:1011/doc
+POST localhost:1013/api/doctors/doc
 Content-Type: application/json
 
 {
   "firstName": "Gena",
   "lastName": "Torchkov",
   "gender": "MALE",
-  "email": "thebestofeklmklthemdoc@example.com",
+  "email": "thebestofeklmklthemdoc@ddexample.com",
   "phoneNumber": "+ 1 (129) 302 4977",
   "specialization": "Cardiologist",
   "rating": 0.0,

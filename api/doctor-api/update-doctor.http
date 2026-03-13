@@ -1,9 +1,9 @@
 ### PUT request to example server
-PUT localhost:1011/doc/4809e1a7-7dec-43b0-b5f2-d2eb303455b8
+PUT localhost:1013/api/doctors/doc/4809e1a7-7dec-43b0-b5f2-d2eb303455b8
 Content-Type: application/json
 
 {
-  "firstName": "Majka UPC",
+  "firstName": "Majka LPC",
   "lastName": "Slyszhek",
   "email": "majkamlm@example.com",
   "phoneNumber": "+1 (900) 224 4409",

@@ -1,4 +1,4 @@
 ###
-DELETE localhost:1010/patient/1a7430ef-4510-49fb-b1fb-d1d3d65b774b
+DELETE localhost:1013/api/patients/patient/1a7430ef-4510-49fb-b1fb-d1d3d65b774b
 
 ###

@@ -1,4 +1,4 @@
 ### GET request to example server
-DELETE localhost:1011/schedule/override/4dc11ff4-f709-46a0-9f30-f7f7f47570d8
+DELETE localhost:1013/api/doctors/schedule/override/4dc11ff4-f709-46a0-9f30-f7f7f47570d8
 
 ###
