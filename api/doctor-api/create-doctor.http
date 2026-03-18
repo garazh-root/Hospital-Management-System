@@ -6,40 +6,11 @@ Content-Type: application/json
   "firstName": "Gena",
   "lastName": "Torchkov",
   "gender": "MALE",
-  "email": "thebestofeklmklthemdoc@ddexample.com",
-  "phoneNumber": "+ 1 (129) 302 4977",
+  "email": "the1emdoc@ddexassmple.com",
+  "phoneNumber": "+ 1 (129) 002 4977",
   "specialization": "Cardiologist",
   "rating": 0.0,
-  "doctorStatus": "ACTIVE",
-  "schedule": [
-    {
-      "scheduleStartTime": "09:00",
-      "scheduleEndTime": "15:00",
-      "scheduleDate": "2025-05-02",
-      "breakStartTime": "13:00",
-      "breakEndTime": "14:00",
-      "customDayOfTheWeek" : "MONDAY",
-      "isDayOff": false
-    },
-    {
-      "scheduleStartTime": "09:00",
-      "scheduleEndTime": "16:30",
-      "scheduleDate": "2025-05-03",
-      "breakStartTime": "13:00",
-      "breakEndTime": "14:00",
-      "customDayOfTheWeek": "TUESDAY",
-      "isDayOff": false
-    },
-    {
-      "scheduleStartTime": "08:30",
-      "scheduleEndTime": "15:30",
-      "scheduleDate": "2025-05-04",
-      "breakStartTime": "13:00",
-      "breakEndTime": "14:00",
-      "customDayOfTheWeek": "THURSDAY",
-      "isDayOff": false
-    }
-  ]
+  "doctorStatus": "ACTIVE"
 }
 
 ###

@@ -5,7 +5,11 @@ import org.com.meetingservice.client.DoctorClient;
 import org.com.meetingservice.dto.AvailableSlotResponse;
 import org.com.meetingservice.dto.ScheduleResponse;
 import org.com.meetingservice.dto.MeetingResponse;
+import org.com.meetingservice.events.MeetingBookedEvent;
+import org.com.meetingservice.events.MeetingCanceledEvent;
+import org.com.meetingservice.events.MeetingCompletedEvent;
 import org.com.meetingservice.exception.MeetingNotFoundException;
+import org.com.meetingservice.kafka.KafkaProducer;
 import org.com.meetingservice.mapper.MeetingMapper;
 import org.com.meetingservice.messages.MeetingServiceMessages;
 import org.com.meetingservice.model.Meeting;
@@ -25,11 +29,14 @@ public class MeetingService {
     private MeetingRepository meetingRepository;
     private SlotGeneratorService slotGeneratorService;
     private DoctorClient doctorClient;
+    private KafkaProducer kafkaProducer;
 
-    public MeetingService(MeetingRepository meetingRepository, SlotGeneratorService slotGeneratorService,  DoctorClient doctorClient) {
+    public MeetingService(
+            MeetingRepository meetingRepository, SlotGeneratorService slotGeneratorService,  DoctorClient doctorClient,  KafkaProducer kafkaProducer) {
         this.meetingRepository = meetingRepository;
         this.slotGeneratorService = slotGeneratorService;
         this.doctorClient = doctorClient;
+        this.kafkaProducer = kafkaProducer;
     }
 
     public List<AvailableSlotResponse> getAvailableSlots(String doctorId, LocalDate date) {
@@ -73,6 +80,18 @@ public class MeetingService {
                 .notes("Regular checkup")
                 .build();
 
+        MeetingBookedEvent bookedEvent = new MeetingBookedEvent(
+                meeting.getId(),
+                meeting.getPatientId(),
+                meeting.getPatientId(),
+                meeting.getMeetingDateTime(),
+                meeting.getDurationOfMinutes(),
+                meeting.getStatus(),
+                Instant.now()
+        );
+
+        kafkaProducer.sendBookMeeting(bookedEvent);
+
         meetingRepository.save(meeting);
 
         return MeetingMapper.toResponseDTO(meeting);
@@ -102,7 +121,42 @@ public class MeetingService {
         meeting.setStatus(MeetingStatus.CANCELLED);
         meeting.setUpdatedAt(Instant.now());
 
+        MeetingCanceledEvent canceledEvent = new MeetingCanceledEvent(
+                meeting.getId(),
+                meeting.getPatientId(),
+                meeting.getDoctorId(),
+                Instant.now()
+        );
+
+        kafkaProducer.sendCancelMeeting(canceledEvent);
+
         meetingRepository.save(meeting);
+    }
+
+    public void completeMeeting(String meetingId) {
+        Meeting meeting = meetingRepository.findById(meetingId).orElseThrow(() -> new MeetingNotFoundException(meetingId));
+
+        meeting.setStatus(MeetingStatus.COMPLETED);
+        meeting.setUpdatedAt(Instant.now());
+
+        MeetingCompletedEvent completedEvent = new MeetingCompletedEvent(
+                meeting.getId(),
+                meeting.getPatientId(),
+                meeting.getDoctorId(),
+                Instant.now()
+        );
+
+        meetingRepository.save(meeting);
+
+        kafkaProducer.sendCompletedEvent(completedEvent);
+    }
+
+    public void autoCompleteMeeting() {
+        List<Meeting> expired = meetingRepository.findByStatusAndMeetingDateTimeBefore(
+                MeetingStatus.CONFIRMED, LocalDateTime.now().minusMinutes(30)
+        );
+
+        expired.forEach(meeting -> completeMeeting(meeting.getId()));
     }
 
     public List<MeetingResponse> mapList(List<Meeting> meetings) {

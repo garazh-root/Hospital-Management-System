@@ -26,4 +26,6 @@ public interface MeetingRepository extends MongoRepository<Meeting, String> {
             LocalDateTime startOfTheDay,
             LocalDateTime endOfTheDay
     );
+
+    List<Meeting> findByStatusAndMeetingDateTimeBefore(MeetingStatus status, LocalDateTime dateTime);
 }

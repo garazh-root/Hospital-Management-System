@@ -1,8 +1,11 @@
 package org.com.doctorservice.service;
 
 import lombok.RequiredArgsConstructor;
+import org.com.doctorservice.additional.DoctorStatus;
 import org.com.doctorservice.dto.DoctorRequestDTO;
 import org.com.doctorservice.dto.DoctorResponseDTO;
+import org.com.doctorservice.events.DoctorChangedStatusEvent;
+import org.com.doctorservice.events.DoctorCreatedEvent;
 import org.com.doctorservice.exception.DoctorNotFoundException;
 import org.com.doctorservice.exception.EmailAlreadyExistsException;
 import org.com.doctorservice.kafka.KafkaProducer;
@@ -51,7 +54,17 @@ public class DoctorService {
         Doctor savedDoctor = doctorRepository.save(doctor);
 
         DoctorResponseDTO response = DoctorMapper.toResponseDTO(savedDoctor);
-        kafkaProducer.sendDoctorCreated(response);
+
+        DoctorCreatedEvent createdEvent = new DoctorCreatedEvent(
+                UUID.fromString(response.getId()),
+                response.getFirstName(),
+                response.getLastName(),
+                response.getEmail(),
+                response.getPhoneNumber(),
+                DoctorStatus.valueOf(response.getDoctorStatus())
+        );
+
+        kafkaProducer.sendDoctorCreated(createdEvent);
 
         return response;
     }
@@ -73,14 +86,36 @@ public class DoctorService {
         Doctor updatedDoctor = doctorRepository.save(doctor);
 
         DoctorResponseDTO response =  DoctorMapper.toResponseDTO(updatedDoctor);
-        kafkaProducer.sendDoctorUpdated(response);
 
         return response;
     }
 
     public void deleteDoctor(UUID id){
         doctorRepository.deleteById(id);
-        kafkaProducer.sendDoctorDeleted(id);
+    }
+
+    public DoctorResponseDTO changeDoctorStatus(UUID id, DoctorStatus newDoctorStatus){
+        Doctor doctor = doctorRepository.findById(id).orElseThrow(() -> new DoctorNotFoundException(id.toString()));
+
+        DoctorStatus oldStatus = doctor.getDoctorStatus();
+
+        if(oldStatus == newDoctorStatus){
+            return DoctorMapper.toResponseDTO(doctor);
+        }
+
+        doctor.setDoctorStatus(newDoctorStatus);
+
+        doctorRepository.save(doctor);
+
+        DoctorChangedStatusEvent changedStatusEvent = new DoctorChangedStatusEvent(
+                doctor.getDoctorId(),
+                oldStatus,
+                newDoctorStatus
+        );
+
+        kafkaProducer.sendPatientStatusUpdated(changedStatusEvent);
+
+        return DoctorMapper.toResponseDTO(doctor);
     }
 
     private List<DoctorResponseDTO> mapList(List<Doctor> doctors){

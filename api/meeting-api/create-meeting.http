@@ -5,7 +5,7 @@ Content-Type: application/json
 {
   "doctorId": "bffe3ab9-973c-4d04-9363-5f754ad228d6",
   "patientId": "f43d3b0c-fa24-43ba-be2f-543ef1036dbf",
-  "meetingDateTime": "2026-03-13T08:30:00",
+  "meetingDateTime": "2026-03-13T14:30:00",
   "duration": 30,
   "reason": "Regular Checkup"
 }
