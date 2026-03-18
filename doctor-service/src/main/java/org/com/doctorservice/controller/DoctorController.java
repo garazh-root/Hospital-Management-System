@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.groups.Default;
 import lombok.RequiredArgsConstructor;
+import org.com.doctorservice.additional.DoctorStatus;
 import org.com.doctorservice.dto.DoctorRequestDTO;
 import org.com.doctorservice.dto.DoctorResponseDTO;
 import org.com.doctorservice.dto.validators.CreateDoctorValidationGroup;
@@ -77,5 +78,15 @@ public class DoctorController {
         doctorService.deleteDoctor(id);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("{doctorId}/status")
+    public ResponseEntity<DoctorResponseDTO> updateDoctorStatus(
+            @PathVariable UUID doctorId,
+            @RequestParam DoctorStatus doctorStatus
+    ) {
+        DoctorResponseDTO response = doctorService.changeDoctorStatus(doctorId, doctorStatus);
+
+        return ResponseEntity.ok().body(response);
     }
 }
