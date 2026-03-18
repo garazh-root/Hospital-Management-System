@@ -1,13 +1,12 @@
 package org.com.patientservice.kafka;
 
 import lombok.extern.slf4j.Slf4j;
-import org.com.patientservice.dto.PatientDeletedEvent;
 import org.com.patientservice.dto.PatientResponseDTO;
+import org.com.patientservice.events.PatientCreatedEvent;
+import org.com.patientservice.events.PatientStatusUpdatedEvent;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-
-import java.util.UUID;
 
 @Service
 @Slf4j
@@ -20,19 +19,14 @@ public class KafkaProducer {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    public void sendPatientCreated(PatientResponseDTO patientResponseDTO) {
-        log.info("Patient Created: {}", patientResponseDTO);
-        kafkaTemplate.send(TOPIC, patientResponseDTO);
+    public void sendPatientCreated(PatientCreatedEvent patientCreatedEvent) {
+        log.info("Patient Created: {}", patientCreatedEvent);
+        kafkaTemplate.send(TOPIC, patientCreatedEvent);
     }
 
-    public void sendPatientUpdated(PatientResponseDTO patientResponseDTO) {
-        log.info("Patient Updated: {}", patientResponseDTO);
-        kafkaTemplate.send(TOPIC, patientResponseDTO);
+    public void sendPatientStatusUpdated(PatientStatusUpdatedEvent patientStatusUpdatedEvent) {
+        log.info("Patient Status Updated: {}", patientStatusUpdatedEvent);
+        kafkaTemplate.send(TOPIC, patientStatusUpdatedEvent);
     }
 
-    public void sendPatientDeleted(UUID id) {
-        PatientDeletedEvent patientDeletedEvent = new PatientDeletedEvent(id);
-        log.info("Patient Deleted: {}", patientDeletedEvent);
-        kafkaTemplate.send(TOPIC, patientDeletedEvent);
-    }
 }

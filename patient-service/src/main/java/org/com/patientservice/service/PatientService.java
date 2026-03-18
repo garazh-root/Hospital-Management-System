@@ -1,8 +1,11 @@
 package org.com.patientservice.service;
 
 import lombok.RequiredArgsConstructor;
+import org.com.patientservice.additional.PatientStatus;
 import org.com.patientservice.dto.PatientRequestDTO;
 import org.com.patientservice.dto.PatientResponseDTO;
+import org.com.patientservice.events.PatientCreatedEvent;
+import org.com.patientservice.events.PatientStatusUpdatedEvent;
 import org.com.patientservice.exception.EmailAlreadyExistsException;
 import org.com.patientservice.exception.PatientNotFoundException;
 import org.com.patientservice.kafka.KafkaProducer;
@@ -51,7 +54,17 @@ public class PatientService {
         Patient patient = patientRepository.save(PatientMapper.toModel(patientRequestDTO));
 
         PatientResponseDTO response = PatientMapper.toDTO(patient);
-        kafkaProducer.sendPatientCreated(response);
+
+        PatientCreatedEvent createdEvent = new PatientCreatedEvent(
+                response.getId(),
+                response.getFirstName(),
+                response.getLastName(),
+                response.getEmail(),
+                response.getPhoneNumber(),
+                response.getStatus()
+        );
+
+        kafkaProducer.sendPatientCreated(createdEvent);
 
         return PatientMapper.toDTO(patient);
     }
@@ -74,13 +87,35 @@ public class PatientService {
         Patient updatedPatient = patientRepository.save(patient);
 
         PatientResponseDTO response = PatientMapper.toDTO(updatedPatient);
-        kafkaProducer.sendPatientUpdated(response);
 
         return PatientMapper.toDTO(updatedPatient);
     }
 
     public void deletePatient(UUID id){
         patientRepository.deleteById(id);
-        kafkaProducer.sendPatientDeleted(id);
+    }
+
+    public PatientResponseDTO changePatientStatus(UUID id, PatientStatus newPatientStatus){
+        Patient patient = patientRepository.findById(id).orElseThrow(() -> new PatientNotFoundException(PatientMessages.PATIENT_NOT_FOUND.getMessage()));
+
+        PatientStatus oldPatientStatus = patient.getPatientStatus();
+
+        if(oldPatientStatus == newPatientStatus) {
+            return PatientMapper.toDTO(patient);
+        }
+
+        patient.setPatientStatus(newPatientStatus);
+
+        patientRepository.save(patient);
+
+        PatientStatusUpdatedEvent updatedEvent = new PatientStatusUpdatedEvent(
+                patient.getPatientId(),
+                oldPatientStatus,
+                newPatientStatus
+        );
+
+        kafkaProducer.sendPatientStatusUpdated(updatedEvent);
+
+        return PatientMapper.toDTO(patient);
     }
 }
