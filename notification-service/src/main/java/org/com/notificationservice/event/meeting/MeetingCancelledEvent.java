@@ -1,11 +1,9 @@
-package org.com.meetingservice.events;
-
-import org.com.meetingservice.additional.MeetingStatus;
+package org.com.notificationservice.event.meeting;
 
 import java.time.Instant;
 import java.util.UUID;
 
-public record MeetingCanceledEvent(
+public record MeetingCancelledEvent(
         String meetingId,
         UUID patientId,
         UUID doctorId,

@@ -23,6 +23,9 @@ public class KafkaProducerConfig {
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
         config.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, true);
+        config.put(JsonSerializer.TYPE_MAPPINGS,
+        "doctorCreated:org.com.doctorservice.events.DoctorCreatedEvent," +
+        "doctorChangedStatus:org.com.doctorservice.events.DoctorChangedStatusEvent");
         config.put("spring.json.trusted.packages", "*");
 
         return new DefaultKafkaProducerFactory<>(config);

@@ -61,7 +61,7 @@ public class PatientService {
                 response.getLastName(),
                 response.getEmail(),
                 response.getPhoneNumber(),
-                response.getStatus()
+                PatientStatus.valueOf(response.getStatus())
         );
 
         kafkaProducer.sendPatientCreated(createdEvent);
