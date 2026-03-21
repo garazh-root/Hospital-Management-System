@@ -1,4 +1,4 @@
 ### GET request to example server
-PATCH localhost:1013/api/doctors/doc/df6b66d9-695b-4a23-ad49-65ed8f3fab66/status?doctorStatus=ACTIVE
+PATCH localhost:1013/api/doctors/doc/df6b66d9-695b-4a23-ad49-65ed8f3fab66/status?doctorStatus=INACTIVE
 
 ###
