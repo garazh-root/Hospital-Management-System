@@ -6,7 +6,7 @@ import org.com.meetingservice.dto.AvailableSlotResponse;
 import org.com.meetingservice.dto.ScheduleResponse;
 import org.com.meetingservice.dto.MeetingResponse;
 import org.com.meetingservice.events.MeetingBookedEvent;
-import org.com.meetingservice.events.MeetingCanceledEvent;
+import org.com.meetingservice.events.MeetingCancelledEvent;
 import org.com.meetingservice.events.MeetingCompletedEvent;
 import org.com.meetingservice.exception.MeetingNotFoundException;
 import org.com.meetingservice.kafka.KafkaProducer;
@@ -17,10 +17,7 @@ import org.com.meetingservice.repository.MeetingRepository;
 import org.com.meetingservice.requests.MeetingRequest;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.List;
 import java.util.UUID;
 
@@ -80,21 +77,21 @@ public class MeetingService {
                 .notes("Regular checkup")
                 .build();
 
+        Meeting savedMeeting = meetingRepository.save(meeting);
+
         MeetingBookedEvent bookedEvent = new MeetingBookedEvent(
-                meeting.getId(),
-                meeting.getPatientId(),
-                meeting.getPatientId(),
-                meeting.getMeetingDateTime(),
-                meeting.getDurationOfMinutes(),
-                meeting.getStatus(),
+                savedMeeting.getId(),
+                savedMeeting.getDoctorId(),
+                savedMeeting.getPatientId(),
+                savedMeeting.getMeetingDateTime(),
+                savedMeeting.getDurationOfMinutes(),
+                savedMeeting.getStatus(),
                 Instant.now()
         );
 
         kafkaProducer.sendBookMeeting(bookedEvent);
 
-        meetingRepository.save(meeting);
-
-        return MeetingMapper.toResponseDTO(meeting);
+        return MeetingMapper.toResponseDTO(savedMeeting);
     }
 
     public List<MeetingResponse> findByDoctorIdAndDateTimeBetween(UUID doctorId, LocalDate start, LocalDate end) {
@@ -121,7 +118,7 @@ public class MeetingService {
         meeting.setStatus(MeetingStatus.CANCELLED);
         meeting.setUpdatedAt(Instant.now());
 
-        MeetingCanceledEvent canceledEvent = new MeetingCanceledEvent(
+        MeetingCancelledEvent canceledEvent = new MeetingCancelledEvent(
                 meeting.getId(),
                 meeting.getPatientId(),
                 meeting.getDoctorId(),
@@ -152,11 +149,14 @@ public class MeetingService {
     }
 
     public void autoCompleteMeeting() {
-        List<Meeting> expired = meetingRepository.findByStatusAndMeetingDateTimeBefore(
-                MeetingStatus.CONFIRMED, LocalDateTime.now().minusMinutes(30)
-        );
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Europe/Kiev"));
 
-        expired.forEach(meeting -> completeMeeting(meeting.getId()));
+        meetingRepository.findByStatus(MeetingStatus.CONFIRMED)
+                .stream()
+                .filter(m -> m.getMeetingDateTime()
+                        .plusMinutes(m.getDurationOfMinutes())
+                        .isBefore(now))
+                .forEach(m -> completeMeeting(m.getId()));
     }
 
     public List<MeetingResponse> mapList(List<Meeting> meetings) {

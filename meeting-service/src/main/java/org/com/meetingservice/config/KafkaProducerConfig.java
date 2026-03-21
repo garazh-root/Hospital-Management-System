@@ -24,6 +24,10 @@ public class KafkaProducerConfig {
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
         config.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, true);
+        config.put(JsonSerializer.TYPE_MAPPINGS,
+                "meetingBooked:org.com.meetingservice.events.MeetingBookedEvent," +
+                "meetingCancelled:org.com.meetingservice.events.MeetingCancelledEvent," +
+                "meetingCompleted:org.com.meetingservice.events.MeetingCompletedEvent");
         config.put("spring.json.trusted.packages", "*");
 
         return new DefaultKafkaProducerFactory<>(config);

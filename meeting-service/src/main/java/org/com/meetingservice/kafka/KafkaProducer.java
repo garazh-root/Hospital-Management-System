@@ -2,7 +2,7 @@ package org.com.meetingservice.kafka;
 
 import lombok.extern.slf4j.Slf4j;
 import org.com.meetingservice.events.MeetingBookedEvent;
-import org.com.meetingservice.events.MeetingCanceledEvent;
+import org.com.meetingservice.events.MeetingCancelledEvent;
 import org.com.meetingservice.events.MeetingCompletedEvent;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -24,7 +24,7 @@ public class KafkaProducer {
         kafkaTemplate.send(TOPIC, event);
     }
 
-    public void sendCancelMeeting(MeetingCanceledEvent event) {
+    public void sendCancelMeeting(MeetingCancelledEvent event) {
         log.info("Sending MeetingCanceledEvent {}", event);
         kafkaTemplate.send(TOPIC, event);
     }
