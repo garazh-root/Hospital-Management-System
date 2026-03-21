@@ -1,6 +1,4 @@
-package org.com.patientservice.events;
-
-import org.com.patientservice.additional.PatientStatus;
+package org.com.notificationservice.event.patient;
 
 public record PatientCreatedEvent(
         String id,
@@ -8,5 +6,5 @@ public record PatientCreatedEvent(
         String lastName,
         String email,
         String phoneNumber,
-        PatientStatus status
+        String status
 ) {}
