@@ -21,6 +21,8 @@ import java.time.*;
 import java.util.List;
 import java.util.UUID;
 
+import static java.time.ZoneOffset.UTC;
+
 @Service
 public class MeetingService {
     private MeetingRepository meetingRepository;
@@ -29,7 +31,7 @@ public class MeetingService {
     private KafkaProducer kafkaProducer;
 
     public MeetingService(
-            MeetingRepository meetingRepository, SlotGeneratorService slotGeneratorService,  DoctorClient doctorClient,  KafkaProducer kafkaProducer) {
+            MeetingRepository meetingRepository, SlotGeneratorService slotGeneratorService, DoctorClient doctorClient, KafkaProducer kafkaProducer) {
         this.meetingRepository = meetingRepository;
         this.slotGeneratorService = slotGeneratorService;
         this.doctorClient = doctorClient;
@@ -40,12 +42,12 @@ public class MeetingService {
         ScheduleResponse doctorScheduleDataResponse = doctorClient.getSchedulesData(
                 doctorId, date, date);
 
-        LocalDateTime start = date.atStartOfDay();
-        LocalDateTime end = date.atTime(LocalTime.MAX);
+        Instant start = date.atStartOfDay(UTC).toInstant();
+        Instant end = date.atTime(LocalTime.MAX).atZone(UTC).toInstant();
 
         List<Meeting> meetingList = meetingRepository.findScheduledMeetingsForDate(UUID.fromString(doctorId), start, end);
 
-        List<LocalDateTime> bookedMeetings = meetingList
+        List<Instant> bookedMeetings = meetingList
                 .stream()
                 .map(Meeting::getMeetingDateTime)
                 .toList();
@@ -70,7 +72,7 @@ public class MeetingService {
         Meeting meeting = Meeting.builder()
                 .doctorId(meetingRequest.doctorId())
                 .patientId(meetingRequest.patientId())
-                .meetingDateTime(meetingRequest.meetingDateTime())
+                .meetingDateTime(meetingRequest.meetingDateTime().toInstant(UTC))
                 .durationOfMinutes(meetingRequest.duration())
                 .status(MeetingStatus.CONFIRMED)
                 .reason(meetingRequest.reason())
@@ -95,15 +97,15 @@ public class MeetingService {
     }
 
     public List<MeetingResponse> findByDoctorIdAndDateTimeBetween(UUID doctorId, LocalDate start, LocalDate end) {
-        LocalDateTime startDate = start.atStartOfDay();
-        LocalDateTime endDate = end.atTime(LocalTime.MAX);
+        Instant startDate = start.atStartOfDay(UTC).toInstant();
+        Instant endDate = end.atTime(LocalTime.MAX).atZone(UTC).toInstant();
 
         return mapList(meetingRepository.findByDoctorIdAndMeetingDateTimeBetween(doctorId, startDate, endDate));
     }
 
     public List<MeetingResponse> findByDoctorIdAndDateTimeBetweenAndStatus(UUID doctorId, LocalDate start, LocalDate end, MeetingStatus status) {
-        LocalDateTime startDate = start.atStartOfDay();
-        LocalDateTime endDate = end.atTime(LocalTime.MAX);
+        Instant startDate = start.atStartOfDay(UTC).toInstant();
+        Instant endDate = end.atTime(LocalTime.MAX).atZone(UTC).toInstant();
 
         return mapList(meetingRepository.findByDoctorIdAndMeetingDateTimeBetweenAndStatus(doctorId, startDate, endDate, status));
     }
@@ -149,12 +151,12 @@ public class MeetingService {
     }
 
     public void autoCompleteMeeting() {
-        LocalDateTime now = LocalDateTime.now(ZoneId.of("Europe/Kiev"));
+        Instant now = Instant.now();
 
         meetingRepository.findByStatus(MeetingStatus.CONFIRMED)
                 .stream()
                 .filter(m -> m.getMeetingDateTime()
-                        .plusMinutes(m.getDurationOfMinutes())
+                        .plusSeconds(m.getDurationOfMinutes() * 60L)
                         .isBefore(now))
                 .forEach(m -> completeMeeting(m.getId()));
     }
