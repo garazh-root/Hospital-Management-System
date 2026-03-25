@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.time.ZoneOffset.UTC;
+
 @Component
 public class BookedSlotStrategy implements SlotStrategy {
 
@@ -16,8 +18,8 @@ public class BookedSlotStrategy implements SlotStrategy {
     public List<AvailableSlotResponse> filter(List<AvailableSlotResponse> slots, SlotFilterContext context) {
         Set<LocalTime> timeSet = context.bookedMeetings()
                 .stream()
-                .filter(m -> m.toLocalDate().equals(context.date()))
-                .map(LocalDateTime::toLocalTime)
+                .filter(m -> m.atZone(UTC).toLocalDate().equals(context.date()))
+                .map(m -> m.atZone(UTC).toLocalTime())
                 .collect(Collectors.toSet());
 
         return slots.stream()

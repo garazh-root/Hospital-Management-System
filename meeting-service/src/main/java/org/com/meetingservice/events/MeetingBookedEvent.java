@@ -10,7 +10,7 @@ public record MeetingBookedEvent(
         String meetingId,
         UUID doctorId,
         UUID patientId,
-        LocalDateTime dateTime,
+        Instant dateTime,
         int durationOfMinutes,
         MeetingStatus meetingStatus,
         Instant occurredAt

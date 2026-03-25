@@ -8,6 +8,7 @@ import org.com.meetingservice.service.filter.SlotStrategy;
 import org.com.meetingservice.service.resolver.ScheduleResolver;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -29,7 +30,7 @@ public class SlotGeneratorService {
     public List<AvailableSlotResponse> generateAvailableSlots(
             ScheduleResponse scheduleResponse,
             LocalDate date,
-            List<LocalDateTime> bookedMeetings
+            List<Instant> bookedMeetings
     ) {
         ResolvedSchedule schedule = scheduleResolver.resolve(scheduleResponse, date);
 
