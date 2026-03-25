@@ -35,7 +35,7 @@ public class Meeting {
 
     @Field(name = "meeting_date_time")
     @NotNull
-    private LocalDateTime meetingDateTime;
+    private Instant meetingDateTime;
 
     @Field(name = "duration_of_minutes")
     @NotNull
