@@ -1,10 +1,12 @@
 package org.com.meetingservice.service;
 
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.com.meetingservice.additional.MeetingStatus;
 import org.com.meetingservice.client.DoctorClient;
 import org.com.meetingservice.dto.AvailableSlotResponse;
 import org.com.meetingservice.dto.MeetingResponse;
 import org.com.meetingservice.dto.ScheduleResponse;
+import org.com.meetingservice.kafka.KafkaProducer;
 import org.com.meetingservice.model.Meeting;
 import org.com.meetingservice.repository.MeetingRepository;
 import org.com.meetingservice.requests.MeetingRequest;
@@ -16,9 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -42,19 +42,22 @@ public class MeetingServiceTest {
     @Mock
     private DoctorClient doctorClient;
 
+    @Mock
+    private KafkaProducer kafkaProducer;
+
     @InjectMocks
     private MeetingService meetingService;
 
     private UUID doctorId;
     private UUID patientId;
-    private LocalDate date;
+    private Instant date;
     private ScheduleResponse scheduleResponse;
 
     @BeforeEach
     void setUp() {
         doctorId = UUID.randomUUID();
         patientId = UUID.randomUUID();
-        date = LocalDate.of(2026, 3, 26);
+        date = LocalDateTime.of(2026, 3, 26, 9, 0, 0).atZone(ZoneId.of("UTC")).toInstant();
         scheduleResponse = mock(ScheduleResponse.class);
     }
 
@@ -65,16 +68,16 @@ public class MeetingServiceTest {
                 new AvailableSlotResponse("2026-03-26", "09:30", "10:00", "30")
         );
 
-        when(doctorClient.getSchedulesData(doctorId.toString(), date, date)).thenReturn(scheduleResponse);
-        when(meetingRepository.findScheduledMeetingsForDate(eq(doctorId), any(LocalDateTime.class), any(LocalDateTime.class)))
+        when(doctorClient.getSchedulesData(doctorId.toString(), date.atZone(ZoneId.of("UTC")).toLocalDate(), date.atZone(ZoneId.of("UTC")).toLocalDate())).thenReturn(scheduleResponse);
+        when(meetingRepository.findScheduledMeetingsForDate(eq(doctorId), any(Instant.class), any(Instant.class)))
                 .thenReturn(Collections.emptyList());
-        when(slotGeneratorService.generateAvailableSlots(any(ScheduleResponse.class), eq(date), anyList()))
+        when(slotGeneratorService.generateAvailableSlots(any(ScheduleResponse.class), eq(date.atZone(ZoneId.of("UTC")).toLocalDate()), anyList()))
                 .thenReturn(list);
 
-        List<AvailableSlotResponse> availableSlotResponses = meetingService.getAvailableSlots(doctorId.toString(), date);
+        List<AvailableSlotResponse> availableSlotResponses = meetingService.getAvailableSlots(doctorId.toString(), date.atZone(ZoneId.of("UTC")).toLocalDate());
 
         assertThat(availableSlotResponses.size()).isEqualTo(list.size());
-        verify(doctorClient).getSchedulesData(doctorId.toString(), date, date);
+        verify(doctorClient).getSchedulesData(doctorId.toString(), date.atZone(ZoneId.of("UTC")).toLocalDate(), date.atZone(ZoneId.of("UTC")).toLocalDate());
     }
 
     @Test
@@ -82,36 +85,36 @@ public class MeetingServiceTest {
         Meeting meeting = Meeting.builder()
                 .doctorId(doctorId)
                 .patientId(patientId)
-                .meetingDateTime(LocalDateTime.of(date, LocalTime.of(10, 0)))
+                .meetingDateTime(Instant.from(date))
                 .durationOfMinutes(30)
                 .status(MeetingStatus.CONFIRMED)
                 .reason("Regular checkup")
                 .build();
 
-        when(doctorClient.getSchedulesData(doctorId.toString(), date, date)).thenReturn(scheduleResponse);
-        when(meetingRepository.findScheduledMeetingsForDate(any(UUID.class), any(LocalDateTime.class), any(LocalDateTime.class)))
+        when(doctorClient.getSchedulesData(doctorId.toString(), date.atZone(ZoneId.of("UTC")).toLocalDate(), date.atZone(ZoneId.of("UTC")).toLocalDate())).thenReturn(scheduleResponse);
+        when(meetingRepository.findScheduledMeetingsForDate(any(UUID.class), any(Instant.class), any(Instant.class)))
                 .thenReturn(List.of(meeting));
-        when(slotGeneratorService.generateAvailableSlots(any(ScheduleResponse.class), eq(date), anyList()))
+        when(slotGeneratorService.generateAvailableSlots(any(ScheduleResponse.class), eq(date.atZone(ZoneId.of("UTC")).toLocalDate()), anyList()))
                 .thenReturn(Collections.emptyList());
 
-        meetingService.getAvailableSlots(doctorId.toString(), date);
+        meetingService.getAvailableSlots(doctorId.toString(), date.atZone(ZoneId.of("UTC")).toLocalDate());
 
-        ArgumentCaptor<List<LocalDateTime>> captor = ArgumentCaptor.forClass(List.class);
-        verify(slotGeneratorService).generateAvailableSlots(any(ScheduleResponse.class), eq(date), captor.capture());
-        assertThat(captor.getValue()).containsExactly(LocalDateTime.of(date, LocalTime.of(10, 0)));
+        ArgumentCaptor<List<Instant>> captor = ArgumentCaptor.forClass(List.class);
+        verify(slotGeneratorService).generateAvailableSlots(any(ScheduleResponse.class), eq(date.atZone(ZoneId.of("UTC")).toLocalDate()), captor.capture());
+        assertThat(captor.getValue()).containsExactly(date);
     }
 
     @Test
     void bookMeetingShouldSaveMeetingAndReturnMeetingResponse() {
-        LocalDateTime dateTime = LocalDateTime.of(date, LocalTime.of(10, 0));
+        LocalDateTime dateTime = LocalDateTime.of(date.atZone(ZoneId.of("UTC")).toLocalDate(), LocalTime.of(10, 0));
         MeetingRequest request = new MeetingRequest(doctorId, patientId, dateTime, 30, "Regular checkup");
 
         AvailableSlotResponse slotResponse = new AvailableSlotResponse("2026-03-26", "10:00", "10:30", "30");
 
-        when(doctorClient.getSchedulesData(doctorId.toString(), date, date)).thenReturn(scheduleResponse);
-        when(meetingRepository.findScheduledMeetingsForDate(any(UUID.class), any(LocalDateTime.class), any(LocalDateTime.class)))
+        when(doctorClient.getSchedulesData(doctorId.toString(), date.atZone(ZoneId.of("UTC")).toLocalDate(), date.atZone(ZoneId.of("UTC")).toLocalDate())).thenReturn(scheduleResponse);
+        when(meetingRepository.findScheduledMeetingsForDate(any(UUID.class), any(Instant.class), any(Instant.class)))
                 .thenReturn(Collections.emptyList());
-        when(slotGeneratorService.generateAvailableSlots(any(ScheduleResponse.class), eq(date), anyList()))
+        when(slotGeneratorService.generateAvailableSlots(any(ScheduleResponse.class), eq(date.atZone(ZoneId.of("UTC")).toLocalDate()), anyList()))
                 .thenReturn(List.of(slotResponse));
 
         ArgumentCaptor<Meeting> argumentCaptor = ArgumentCaptor.forClass(Meeting.class);
@@ -127,15 +130,15 @@ public class MeetingServiceTest {
 
     @Test
     void bookMeetingShouldThrowExceptionWhenSlotIsNotAvailable() {
-        LocalDateTime dateTime = LocalDateTime.of(date, LocalTime.of(10, 0));
+        LocalDateTime dateTime = LocalDateTime.of(date.atZone(ZoneId.of("UTC")).toLocalDate(), LocalTime.of(10, 0));
         MeetingRequest request = new MeetingRequest(doctorId, patientId, dateTime, 30, "Regular checkup");
 
         AvailableSlotResponse slotResponse = new AvailableSlotResponse("2026-03-26", "08:30", "09:00", "30");
 
-        when(doctorClient.getSchedulesData(doctorId.toString(), date, date)).thenReturn(scheduleResponse);
-        when(meetingRepository.findScheduledMeetingsForDate(any(UUID.class), any(LocalDateTime.class), any(LocalDateTime.class)))
+        when(doctorClient.getSchedulesData(doctorId.toString(), date.atZone(ZoneId.of("UTC")).toLocalDate(), date.atZone(ZoneId.of("UTC")).toLocalDate())).thenReturn(scheduleResponse);
+        when(meetingRepository.findScheduledMeetingsForDate(any(UUID.class), any(Instant.class), any(Instant.class)))
                 .thenReturn(Collections.emptyList());
-        when(slotGeneratorService.generateAvailableSlots(any(ScheduleResponse.class), eq(date), anyList()))
+        when(slotGeneratorService.generateAvailableSlots(any(ScheduleResponse.class), eq(date.atZone(ZoneId.of("UTC")).toLocalDate()), anyList()))
                 .thenReturn(List.of(slotResponse));
 
         assertThatThrownBy(() -> meetingService.bookMeeting(request)).isInstanceOf(IllegalStateException.class);
@@ -146,9 +149,9 @@ public class MeetingServiceTest {
         LocalDate startDate = LocalDate.of(2026, 3, 1);
         LocalDate endDate = LocalDate.of(2026, 3, 30);
 
-        Meeting meeting = meetingBuilder(doctorId, patientId, LocalDateTime.of(2026, 3, 15, 9, 0));
+        Meeting meeting = meetingBuilder(doctorId, patientId, LocalDateTime.of(2026, 3, 15, 9, 0).atZone(ZoneId.of("UTC")).toInstant());
 
-        when(meetingRepository.findByDoctorIdAndMeetingDateTimeBetween(eq(doctorId), any(LocalDateTime.class), any(LocalDateTime.class)))
+        when(meetingRepository.findByDoctorIdAndMeetingDateTimeBetween(eq(doctorId), any(Instant.class), any(Instant.class)))
                 .thenReturn(List.of(meeting));
 
         List<MeetingResponse> meetingResponseList = meetingService.findByDoctorIdAndDateTimeBetween(doctorId, startDate, endDate);
@@ -170,9 +173,9 @@ public class MeetingServiceTest {
         LocalDate startDate = LocalDate.of(2026, 3, 1);
         LocalDate endDate = LocalDate.of(2026, 3, 30);
 
-        Meeting meeting = meetingBuilder(doctorId, patientId, LocalDateTime.of(2026, 3, 15, 9, 0));
+        Meeting meeting = meetingBuilder(doctorId, patientId, LocalDateTime.of(2026, 3, 15, 9, 0).atZone(ZoneId.of("UTC")).toInstant());
 
-        when(meetingRepository.findByDoctorIdAndMeetingDateTimeBetweenAndStatus(eq(doctorId), any(LocalDateTime.class), any(LocalDateTime.class), eq(MeetingStatus.CONFIRMED)))
+        when(meetingRepository.findByDoctorIdAndMeetingDateTimeBetweenAndStatus(eq(doctorId), any(Instant.class), any(Instant.class), eq(MeetingStatus.CONFIRMED)))
                 .thenReturn(List.of(meeting));
 
         List<MeetingResponse> meetingResponseList = meetingService.findByDoctorIdAndDateTimeBetweenAndStatus(doctorId, startDate, endDate, MeetingStatus.CONFIRMED);
@@ -191,7 +194,7 @@ public class MeetingServiceTest {
 
     @Test
     void findMeetingByPatientIdAndDateTimeBetweenAndStatusShouldReturnListOfMeetingMappedResponses() {
-        Meeting meeting = meetingBuilder(doctorId, patientId, LocalDateTime.of(2026, 3, 15, 9, 0));
+        Meeting meeting = meetingBuilder(doctorId, patientId, Instant.now());
         when(meetingRepository.findByPatientId(patientId)).thenReturn(List.of(meeting));
 
         List<MeetingResponse> meetingResponseList = meetingService.findByPatientId(patientId);
@@ -210,7 +213,7 @@ public class MeetingServiceTest {
     @Test
     void cancelMeetingShouldChangeStatusToCancelled() {
         String meetingId = "69a827dbc162bec1fe6f4306";
-        Meeting meeting = meetingBuilder(doctorId, patientId, LocalDateTime.of(2026, 3, 15, 9, 0));
+        Meeting meeting = meetingBuilder(doctorId, patientId, Instant.now());
 
         when(meetingRepository.findById(meetingId)).thenReturn(Optional.of(meeting));
         when(meetingRepository.save(any())).thenReturn(meeting);
@@ -220,7 +223,7 @@ public class MeetingServiceTest {
         assertThat(meeting.getStatus()).isEqualTo(MeetingStatus.CANCELLED);
     }
 
-    private Meeting meetingBuilder(UUID doctorId, UUID patientId, LocalDateTime dateTime) {
+    private Meeting meetingBuilder(UUID doctorId, UUID patientId, Instant dateTime) {
         return Meeting.builder()
                 .doctorId(doctorId)
                 .patientId(patientId)
