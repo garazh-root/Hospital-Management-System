@@ -6,8 +6,10 @@ import org.com.meetingservice.service.filter.SlotFilterContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,8 +33,8 @@ public class BookedSlotStrategyTest {
                 slot("10:00", "10:30")
         );
 
-        List<LocalDateTime> booked = List.of(
-                LocalDateTime.of(2025, 7, 7, 9, 30)
+        List<Instant> booked = List.of(
+                LocalDateTime.of(2025, 7, 7, 9, 30).toInstant(ZoneOffset.UTC)
         );
 
         List<AvailableSlotResponse> responses = strategy.filter(availableSlotResponses, new SlotFilterContext(DATE, booked));
@@ -60,9 +62,9 @@ public class BookedSlotStrategyTest {
                 slot("09:30", "10:00")
         );
 
-        List<LocalDateTime> booked = List.of(
-                LocalDateTime.of(2025, 7, 7, 9, 0),
-                LocalDateTime.of(2025, 7, 7, 9, 30)
+        List<Instant> booked = List.of(
+                LocalDateTime.of(2025, 7, 7, 9, 0).toInstant(ZoneOffset.UTC),
+                LocalDateTime.of(2025, 7, 7, 9, 30).toInstant(ZoneOffset.UTC)
         );
 
         List<AvailableSlotResponse> responses = strategy.filter(availableSlotResponses, new SlotFilterContext(DATE, booked));
@@ -72,8 +74,8 @@ public class BookedSlotStrategyTest {
 
     @Test
     void filterShouldHandelEmptySlotList() {
-        List<LocalDateTime> booked = List.of(
-                LocalDateTime.of(2025, 7, 7, 9, 0)
+        List<Instant> booked = List.of(
+                LocalDateTime.of(2025, 7, 7, 9, 0).toInstant(ZoneOffset.UTC)
                 );
 
         List<AvailableSlotResponse> slotResponses = strategy.filter(List.of(), new SlotFilterContext(DATE, booked));
