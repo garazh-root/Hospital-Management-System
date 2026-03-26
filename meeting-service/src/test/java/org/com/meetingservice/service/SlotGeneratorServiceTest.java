@@ -13,9 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.Collections;
 import java.util.List;
 
@@ -91,7 +89,7 @@ public class SlotGeneratorServiceTest {
                 LocalTime.of(9, 0), LocalTime.of(10, 0), 30
         );
 
-        List<LocalDateTime> bookedMeetings = List.of(LocalDateTime.of(2025, 7, 7, 9, 0));
+        List<Instant> bookedMeetings = List.of((LocalDateTime.of(2025, 7, 7, 9, 0)).toInstant(ZoneOffset.UTC));
 
         when(scheduleResolver.resolve(scheduleResponse, DATE)).thenReturn(resolvedSchedule);
         when(slotFactory.generateSlots(any(), any())).thenReturn(List.of());

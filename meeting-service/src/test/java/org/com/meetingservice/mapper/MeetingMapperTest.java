@@ -1,12 +1,11 @@
 package org.com.meetingservice.mapper;
 
-
 import org.com.meetingservice.additional.MeetingStatus;
 import org.com.meetingservice.dto.MeetingResponse;
 import org.com.meetingservice.model.Meeting;
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -18,7 +17,7 @@ public class MeetingMapperTest {
         UUID doctorId = UUID.randomUUID();
         UUID patientId = UUID.randomUUID();
 
-        LocalDateTime dateTime = LocalDateTime.of(2026, 6, 1, 9, 0, 0);
+        Instant dateTime = Instant.now();
 
         Meeting meeting = Meeting.builder()
                 .id("ddcf0ec6fc0e407ab460bc37")
