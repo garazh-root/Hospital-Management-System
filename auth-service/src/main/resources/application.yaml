@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: auth-service
+
+jwt:
+  secret: "${JWT_SECRET_KEY}"
+  lifetime: "${JWT_LIFE_TIME}"
+
+server:
+  port: 1014
+
+logging:
+  level:
+    root: info
