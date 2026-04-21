@@ -7,6 +7,10 @@ spring:
       server:
         webflux:
          routes:
+         - id: auth-service
+           uri : http://auth-service:1014
+           predicates:
+             - Path=/auth/**
 
          - id: patient-service
            uri: http://patient-service:1010
@@ -14,6 +18,7 @@ spring:
              - Path=/api/patients/**
            filters:
              - RewritePath=/api/patients/(?<segment>.*), /${segment}
+             - JwtAuth
 
          - id: doctor-service
            uri: http://doctor-service:1011
@@ -21,6 +26,7 @@ spring:
              - Path=/api/doctors/**
            filters:
              - RewritePath=/api/doctors/(?<segment>.*), /${segment}
+             - JwtAuth
 
          - id: meeting-service
            uri: http://meeting-service:1012
@@ -28,9 +34,13 @@ spring:
              - Path=/api/meetings/**
            filters:
              - RewritePath=/api/meetings/(?<segment>.*), /${segment}
+             - JwtAuth
 
 server:
   port: 1013
+
+jwt:
+  secret: "${JWT_SECRET_KEY}"
 
 logging:
   level:
