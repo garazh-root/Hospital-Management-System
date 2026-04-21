@@ -6,6 +6,7 @@ import org.com.authservice.dto.JwtResponse;
 import org.com.authservice.dto.LoginRequest;
 import org.com.authservice.dto.RegisterRequest;
 import org.com.authservice.service.AuthService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +23,8 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<JwtResponse> register(@Valid @RequestBody RegisterRequest registerRequest) {
-        return  ResponseEntity.ok(authService.register(registerRequest));
+    public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest registerRequest) {
+        authService.register(registerRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }
