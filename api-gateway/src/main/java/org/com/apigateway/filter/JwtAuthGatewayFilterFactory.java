@@ -44,6 +44,13 @@ public class JwtAuthGatewayFilterFactory extends
                         .parseClaimsJws(token)
                         .getBody();
 
+                String role = claims.get("role", String.class);
+
+                if(config.getRequiredRole() != null && !role.equals(config.getRequiredRole())){
+                    exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+                    return exchange.getResponse().setComplete();
+                }
+
                 ServerHttpRequest request = exchange.getRequest().mutate()
                         .header("X-User-Id", claims.getSubject())
                         .header("X-User-role", claims.get("role", String.class))
@@ -60,5 +67,15 @@ public class JwtAuthGatewayFilterFactory extends
     }
 
     public static class Config {
+
+        private String requiredRole;
+
+        public String getRequiredRole() {
+            return requiredRole;
+        }
+
+        public void setRequiredRole(String requiredRole) {
+            this.requiredRole = requiredRole;
+        }
     }
 }
