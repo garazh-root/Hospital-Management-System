@@ -37,24 +37,29 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
-        String token = header.substring(7);
+        try {
+            String token = header.substring(7);
 
-        if (jwtService.validateToken(token)
-                && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            UUID userId = UUID.fromString(jwtService.extractUserId(token));
-            UserDetails userDetails = userService.findById(userId);
+            if (jwtService.validateToken(token)
+                    && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails.getAuthorities()
-            );
+                UUID userId = UUID.fromString(jwtService.extractUserId(token));
+                UserDetails userDetails = userService.findById(userId);
 
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities()
+                );
 
-            SecurityContext sct = SecurityContextHolder.createEmptyContext();
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-            sct.setAuthentication(authentication);
-            SecurityContextHolder.setContext(sct);
+                SecurityContext sct = SecurityContextHolder.createEmptyContext();
+
+                sct.setAuthentication(authentication);
+                SecurityContextHolder.setContext(sct);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         filterChain.doFilter(request, response);
