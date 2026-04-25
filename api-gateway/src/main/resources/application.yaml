@@ -18,7 +18,9 @@ spring:
              - Path=/api/patients/**
            filters:
              - RewritePath=/api/patients/(?<segment>.*), /${segment}
-             - JwtAuth
+             - name: JwtAuth
+               args:
+                 requiredRole: PATIENT
 
          - id: doctor-service
            uri: http://doctor-service:1011
@@ -26,7 +28,9 @@ spring:
              - Path=/api/doctors/**
            filters:
              - RewritePath=/api/doctors/(?<segment>.*), /${segment}
-             - JwtAuth
+             - name: JwtAuth
+               args:
+                 requiredRole: DOCTOR
 
          - id: meeting-service
            uri: http://meeting-service:1012
