@@ -5,8 +5,10 @@ import org.com.authservice.additional.AuthServiceMessages;
 import org.com.authservice.dto.LoginRequest;
 import org.com.authservice.dto.JwtResponse;
 import org.com.authservice.dto.RegisterRequest;
+import org.com.authservice.events.UserRegisteredEvent;
 import org.com.authservice.exception.EmailAlreadyExistsException;
 import org.com.authservice.jwt.JwtService;
+import org.com.authservice.kafka.KafkaProducer;
 import org.com.authservice.model.User;
 import org.com.authservice.repository.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,6 +18,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -24,6 +28,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final KafkaProducer kafkaProducer;
 
     public JwtResponse login(LoginRequest loginRequest) {
         try {
@@ -66,6 +71,10 @@ public class AuthService {
                 .build();
 
         userRepository.save(user);
+
+        kafkaProducer.sendRegisterEvent(
+                new UserRegisteredEvent(
+                        user.getId(), user.getUsername(), user.getEmail(), user.getRole(), LocalDateTime.now()));
 
         return new JwtResponse(jwtService.generateToken(user));
     }
