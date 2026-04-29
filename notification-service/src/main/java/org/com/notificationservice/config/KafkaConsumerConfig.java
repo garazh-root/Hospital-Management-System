@@ -29,13 +29,14 @@ public class KafkaConsumerConfig {
         props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JacksonJsonDeserializer.class);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(JacksonJsonDeserializer.TYPE_MAPPINGS,
-                        "doctorCreated:org.com.notificationservice.event.doctor.DoctorCreatedEvent," +
+                "doctorCreated:org.com.notificationservice.event.doctor.DoctorCreatedEvent," +
                         "doctorChangedStatus:org.com.notificationservice.event.doctor.DoctorChangedStatusEvent," +
                         "meetingBooked:org.com.notificationservice.event.meeting.MeetingBookedEvent," +
                         "meetingCancelled:org.com.notificationservice.event.meeting.MeetingCancelledEvent," +
                         "meetingCompleted:org.com.notificationservice.event.meeting.MeetingCompletedEvent," +
                         "patientCreated:org.com.notificationservice.event.patient.PatientCreatedEvent," +
-                        "patientStatusUpdated:org.com.notificationservice.event.patient.PatientStatusUpdatedEvent");
+                        "patientStatusUpdated:org.com.notificationservice.event.patient.PatientStatusUpdatedEvent," +
+                        "userRegistered:org.com.notificationservice.event.user.UserRegisteredEvent");
         props.put("spring.json.trusted.packages", "*");
 
         return new DefaultKafkaConsumerFactory<>(props);
