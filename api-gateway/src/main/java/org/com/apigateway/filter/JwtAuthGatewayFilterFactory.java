@@ -54,6 +54,7 @@ public class JwtAuthGatewayFilterFactory extends
                 ServerHttpRequest request = exchange.getRequest().mutate()
                         .header("X-User-Id", claims.getSubject())
                         .header("X-User-role", claims.get("role", String.class))
+                        .header("X-User-email", claims.get("email", String.class))
                         .build();
 
                 return chain.filter(exchange.mutate().request(request).build());
