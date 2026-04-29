@@ -26,6 +26,9 @@ repositories {
 
 dependencies {
     implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
+    implementation 'org.apache.kafka:kafka-streams'
+    implementation 'org.springframework.boot:spring-boot-starter-kafka'
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
     implementation 'me.paulschwarz:spring-dotenv:4.0.0'
