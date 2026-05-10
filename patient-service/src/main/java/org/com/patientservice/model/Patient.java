@@ -19,7 +19,6 @@ import java.util.UUID;
 public class Patient {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "patient_id")
     private UUID patientId;
 
@@ -31,16 +30,13 @@ public class Patient {
     @Column(name = "last_name")
     private String lastName;
 
-    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "gender")
     private Gender gender;
 
-    @NotNull
     @Column(name = "weight")
     private Double weight;
 
-    @NotNull
     @Column(name = "height")
     private Double height;
 
@@ -53,11 +49,9 @@ public class Patient {
     @Column(name = "phone_number")
     private String phoneNumber;
 
-    @NotNull
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
 
-    @NotNull
     @Column(name = "address")
     private String address;
 
