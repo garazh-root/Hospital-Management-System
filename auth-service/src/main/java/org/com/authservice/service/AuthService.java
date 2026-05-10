@@ -74,7 +74,14 @@ public class AuthService {
 
         kafkaProducer.sendRegisterEvent(
                 new UserRegisteredEvent(
-                        user.getId(), user.getUsername(), user.getEmail(), user.getRole(), LocalDateTime.now()));
+                        user.getId(),
+                        user.getUsername(),
+                        registerRequest.firstName(),
+                        registerRequest.lastName(),
+                        user.getEmail(),
+                        registerRequest.phoneNumber(),
+                        user.getRole(),
+                        LocalDateTime.now()));
 
         return new JwtResponse(jwtService.generateToken(user));
     }
