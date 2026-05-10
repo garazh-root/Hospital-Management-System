@@ -5,14 +5,6 @@ spring:
 server:
   port: 1010
 
-#eureka:
-#  client:
-#    service-url:
-#      defaultZone: http://meeting-service:1012/eureka/  # Points to meeting-service container
-#  instance:
-#    prefer-ip-address: true
-#    hostname: patient-service
-
 logging:
   level:
     root: info
