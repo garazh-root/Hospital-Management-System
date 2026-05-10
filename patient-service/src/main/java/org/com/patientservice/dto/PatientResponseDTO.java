@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class PatientResponseDTO {
-
     private String id;
     private String firstName;
     private String lastName;

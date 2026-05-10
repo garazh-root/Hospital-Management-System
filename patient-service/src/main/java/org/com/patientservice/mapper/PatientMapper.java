@@ -4,18 +4,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.com.patientservice.additional.PatientStatus;
 import org.com.patientservice.dto.PatientRequestDTO;
 import org.com.patientservice.dto.PatientResponseDTO;
+import org.com.patientservice.events.UserRegisteredEvent;
 import org.com.patientservice.exception.EmptyComponentException;
 import org.com.patientservice.exception.EmptyEntityException;
 import org.com.patientservice.messages.PatientMessages;
 import org.com.patientservice.model.Patient;
 
+import java.time.LocalDate;
 import java.util.Map;
 
 @Slf4j
 public class PatientMapper {
 
     public static PatientResponseDTO toDTO(Patient patient) {
-
         if (patient == null) {
             throw new EmptyEntityException(PatientMessages.MODEL_EMPTY.getMessage());
         }
@@ -34,76 +35,24 @@ public class PatientMapper {
                 .address(patient.getAddress())
                 .build();
 
-        validate(patientResponseDTO);
-
         return patientResponseDTO;
     }
 
-    public static Patient toModel(PatientRequestDTO patientRequestDTO) {
-        if (patientRequestDTO == null) {
+    public static Patient toModel(UserRegisteredEvent userRegisteredEvent) {
+        if (userRegisteredEvent == null) {
             throw new EmptyComponentException(PatientMessages.REQUEST_EMPTY.getMessage());
         }
 
         Patient patient = Patient.builder()
-                .firstName(patientRequestDTO.getFirstName())
-                .lastName(patientRequestDTO.getLastName())
-                .gender(patientRequestDTO.getGender())
-                .weight(patientRequestDTO.getWeight())
-                .height(patientRequestDTO.getHeight())
-                .email(patientRequestDTO.getEmail())
-                .phoneNumber(patientRequestDTO.getPhoneNumber())
-                .dateOfBirth(patientRequestDTO.getDateOfBirth())
-                .address(patientRequestDTO.getAddress())
-                .patientStatus(PatientStatus.ACTIVE)
-                .registeredDate(patientRequestDTO.getRegisteredDate())
+                .patientId(userRegisteredEvent.id())
+                .firstName(userRegisteredEvent.firstName())
+                .lastName(userRegisteredEvent.lastName())
+                .email(userRegisteredEvent.email())
+                .phoneNumber(userRegisteredEvent.phoneNumber())
+                .patientStatus(PatientStatus.PENDING)
+                .registeredDate(userRegisteredEvent.registeredAt().toLocalDate())
                 .build();
 
-        validate(patient);
-
         return patient;
-    }
-
-    private static void validate(PatientResponseDTO patientResponseDTO) {
-        Map<String, String> responseMap = Map.of(
-                "PatientId", patientResponseDTO.getId(),
-                "FirstName", patientResponseDTO.getFirstName(),
-                "LastName", patientResponseDTO.getLastName(),
-                "Weight", patientResponseDTO.getWeight(),
-                "Height", patientResponseDTO.getHeight(),
-                "Email", patientResponseDTO.getEmail(),
-                "PhoneNumber", patientResponseDTO.getPhoneNumber(),
-                "DateOfBirth", patientResponseDTO.getDateOfBirth(),
-                "PatientStatus", patientResponseDTO.getStatus(),
-                "Address", patientResponseDTO.getAddress()
-        );
-
-        responseMap.forEach((key, value) -> {
-            if (value == null || value.isBlank()) {
-                throw new EmptyComponentException(PatientMessages.RESPONSE_EMPTY.getMessage());
-            }
-        });
-
-    }
-
-    private static void validate(Patient patient) {
-        Map<String, String> response = Map.of(
-                "FirstName", patient.getFirstName(),
-                "LastName", patient.getLastName(),
-                "Weight", patient.getWeight().toString(),
-                "Height", patient.getHeight().toString(),
-                "Email", patient.getEmail(),
-                "PhoneNumber", patient.getPhoneNumber(),
-                "DateOfBirth", patient.getDateOfBirth().toString(),
-                "Address", patient.getAddress(),
-                "PatientStatus", patient.getPatientStatus().toString(),
-                "RegisteredDate", patient.getRegisteredDate().toString());
-
-
-        response.forEach((key, value) -> {
-            if (value == null || value.isBlank()) {
-                throw new EmptyEntityException(PatientMessages.MODEL_EMPTY.getMessage());
-            }
-        });
-
     }
 }

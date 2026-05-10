@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.groups.Default;
 import lombok.RequiredArgsConstructor;
 import org.com.patientservice.additional.PatientStatus;
+import org.com.patientservice.dto.PatientCompleteDTO;
 import org.com.patientservice.dto.PatientRequestDTO;
 import org.com.patientservice.dto.PatientResponseDTO;
 import org.com.patientservice.dto.validators.CreatePatientValidationGroup;
@@ -40,10 +41,11 @@ public class PatientController {
         return ResponseEntity.ok().body(patientResponseDTO);
     }
 
-    @PostMapping
-    @Operation(summary = "Create Patient")
-    public ResponseEntity<PatientResponseDTO> savePatient(@Validated({Default.class, CreatePatientValidationGroup.class})@RequestBody PatientRequestDTO patientRequestDTO) {
-        PatientResponseDTO dto = patientService.createPatient(patientRequestDTO);
+    @PutMapping("/{id}/complete_profile")
+    @Operation(summary = "Complete full Patient profile")
+    public ResponseEntity<PatientResponseDTO> completeFullPatientProfile(
+            @PathVariable UUID id, @RequestBody PatientCompleteDTO patientCompleteDTO) {
+        PatientResponseDTO dto = patientService.completeFullPatientProfile(id, patientCompleteDTO);
 
         return ResponseEntity.ok().body(dto);
     }
@@ -69,7 +71,7 @@ public class PatientController {
     public ResponseEntity<PatientResponseDTO> updatePatientStatus(
             @PathVariable UUID id,
             @RequestParam PatientStatus status
-    ){
+    ) {
         PatientResponseDTO dto = patientService.changePatientStatus(id, status);
 
         return ResponseEntity.ok().body(dto);

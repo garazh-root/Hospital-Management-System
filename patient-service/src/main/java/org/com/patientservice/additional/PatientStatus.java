@@ -4,5 +4,6 @@ public enum PatientStatus {
     ACTIVE,
     INACTIVE,
     SUSPENDED,
-    ON_LEAVE
+    ON_LEAVE,
+    PENDING
 }

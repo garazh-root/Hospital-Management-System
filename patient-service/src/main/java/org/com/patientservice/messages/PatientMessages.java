@@ -10,7 +10,8 @@ public enum PatientMessages {
     API_FOR_MANAGING_PATIENTS("API for managing patients"),
     PATIENT_CREATED("Patient created"),
     PATIENT_UPDATED("Patient updated"),
-    PATIENT_FOUND("Patient found");
+    PATIENT_FOUND("Patient found"),
+    ROLE_NOT_MATCHING("Role not matching");
 
     private final String message;
 

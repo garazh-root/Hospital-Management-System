@@ -40,7 +40,6 @@ public class JwtFilter extends OncePerRequestFilter {
         try {
             String token = header.substring(7);
 
-
             if (jwtService.validateToken(token)
                     && SecurityContextHolder.getContext().getAuthentication() == null) {
 

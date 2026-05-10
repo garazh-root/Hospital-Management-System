@@ -62,4 +62,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(errors);
     }
 
+    public ResponseEntity<Map<String, String>> handler(NotMatchingRoleExcpetion exception) {
+        Map<String, String> errors = new HashMap<>();
+
+        log.warn("Not matching role excpetion {}", exception.getMessage());
+        errors.put("message", exception.getMessage());
+
+        return ResponseEntity.badRequest().body(errors);
+    }
+
 }

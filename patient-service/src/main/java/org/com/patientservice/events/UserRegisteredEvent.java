@@ -1,6 +1,6 @@
-package org.com.authservice.events;
+package org.com.patientservice.events;
 
-import org.com.authservice.additional.Roles;
+import org.com.patientservice.additional.Roles;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -15,5 +15,4 @@ public record UserRegisteredEvent(
         Roles role,
         LocalDateTime registeredAt
 ) {
-
 }
