@@ -21,7 +21,6 @@ import java.util.UUID;
 public class Doctor {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "doctor_id")
     private UUID doctorId;
 
@@ -34,7 +33,6 @@ public class Doctor {
     private String lastName;
 
     @Enumerated(EnumType.STRING)
-    @NotNull
     @Column(name = "gender")
     private Genders gender;
 
@@ -47,12 +45,10 @@ public class Doctor {
     @Column(name = "phone_number")
     private String phoneNumber;
 
-    @NotNull
     @Column(name = "specialization")
     private String specialization;
 
     @Column(precision = 2, scale = 1, name = "rating")
-    @NotNull
     private BigDecimal rating;
 
     @Enumerated(EnumType.STRING)
