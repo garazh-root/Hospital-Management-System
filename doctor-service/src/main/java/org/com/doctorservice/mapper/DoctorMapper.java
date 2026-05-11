@@ -1,8 +1,10 @@
 package org.com.doctorservice.mapper;
 
 import lombok.experimental.UtilityClass;
+import org.com.doctorservice.additional.DoctorStatus;
 import org.com.doctorservice.dto.DoctorRequestDTO;
 import org.com.doctorservice.dto.DoctorResponseDTO;
+import org.com.doctorservice.events.UserRegisteredEvent;
 import org.com.doctorservice.exception.EmptyScheduleException;
 import org.com.doctorservice.messages.DoctorServiceMessages;
 import org.com.doctorservice.model.Doctor;
@@ -28,16 +30,14 @@ public class DoctorMapper {
         return doctorResponseDTO;
     }
 
-    public static Doctor toModel(DoctorRequestDTO doctorRequestDTO) {
+    public static Doctor toModel(UserRegisteredEvent userRegisteredEvent) {
         Doctor doctor = Doctor.builder()
-                .firstName(doctorRequestDTO.getFirstName())
-                .lastName(doctorRequestDTO.getLastName())
-                .gender(doctorRequestDTO.getGender())
-                .email(doctorRequestDTO.getEmail())
-                .phoneNumber(doctorRequestDTO.getPhoneNumber())
-                .specialization(doctorRequestDTO.getSpecialization())
-                .rating(doctorRequestDTO.getRating())
-                .doctorStatus(doctorRequestDTO.getDoctorStatus())
+                .doctorId(userRegisteredEvent.id())
+                .firstName(userRegisteredEvent.firstName())
+                .lastName(userRegisteredEvent.lastName())
+                .email(userRegisteredEvent.email())
+                .phoneNumber(userRegisteredEvent.phoneNumber())
+                .doctorStatus(DoctorStatus.INACTIVE)
                 .build();
 
         return doctor;
