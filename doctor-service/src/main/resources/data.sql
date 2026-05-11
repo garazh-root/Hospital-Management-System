@@ -3,11 +3,11 @@ CREATE TABLE IF NOT EXISTS doctor
     doctor_id UUID PRIMARY KEY,
     first_name varchar(32) NOT NULL,
     last_name varchar(32) NOT NULL,
-    gender varchar(16) NOT NULL,
+    gender varchar(16),
     email varchar(128) UNIQUE NOT NULL,
     phone_number varchar(64) NOT NULL,
-    specialization text NOT NULL,
-    rating numeric(2,1) NOT NULL DEFAULT 0.0,
+    specialization text,
+    rating numeric(2,1) DEFAULT 0.0,
     doctor_status varchar(32) NOT NULL
 );
 
