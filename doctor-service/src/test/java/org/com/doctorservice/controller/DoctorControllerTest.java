@@ -1,5 +1,8 @@
 package org.com.doctorservice.controller;
 
+import org.com.doctorservice.additional.Roles;
+import org.com.doctorservice.dto.DoctorCompleteDTO;
+import org.com.doctorservice.events.UserRegisteredEvent;
 import org.com.doctorservice.model.Doctor;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -19,6 +22,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -42,15 +46,18 @@ public class DoctorControllerTest {
     @MockitoBean
     private DoctorService doctorService;
 
+    private DoctorCompleteDTO doctorCompleteDTO;
     private Doctor doctor;
     private DoctorResponseDTO doctorResponseDTO;
     private DoctorRequestDTO doctorRequestDTO;
 
+    private UUID userId;
     private UUID doctorId;
 
     @BeforeEach
     void setUp() {
         doctorId = UUID.randomUUID();
+        userId = UUID.randomUUID();
 
         this.doctor = Doctor.builder()
                 .doctorId(doctorId)
@@ -86,6 +93,10 @@ public class DoctorControllerTest {
                 .rating(BigDecimal.valueOf(0.0).toString())
                 .doctorStatus(DoctorStatus.ACTIVE.toString())
                 .build();
+
+        this.doctorCompleteDTO = new DoctorCompleteDTO(
+                Genders.MALE, "Cardiologist", BigDecimal.valueOf(0.0)
+        );
     }
 
     @Test
@@ -189,19 +200,30 @@ public class DoctorControllerTest {
     }
 
     @Test
-    void crateDoctorShouldSuccessfullyInvokePostMethod() throws Exception {
-        when(doctorService.createDoctor(doctorRequestDTO)).thenReturn(doctorResponseDTO);
+    void completeDoctorShouldReturnDoctorResponseDTO() throws Exception {
+        when(doctorService.completeDoctor(userId, doctorCompleteDTO)).thenReturn(doctorResponseDTO);
 
-        mockMvc.perform(post("/doc")
+        mockMvc.perform(put("/doc/{id}/complete_profile", userId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(doctorRequestDTO)))
+                        .content(objectMapper.writeValueAsString(doctorCompleteDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(doctorResponseDTO.getId()))
                 .andExpect(jsonPath("$.specialization").value(doctorResponseDTO.getSpecialization()))
-                .andExpect(jsonPath("$.email").value(doctorResponseDTO.getEmail()));
+                .andExpect(jsonPath("$.gender").value(doctorResponseDTO.getGender()));
+    }
 
-        verify(doctorService).createDoctor(doctorRequestDTO);
-        verify(doctorService, times(1)).createDoctor(doctorRequestDTO);
+    @Test
+    void completeDoctorShouldReturnBadRequestResponseIfValueIsEmpty() throws Exception {
+        UUID userId = UUID.randomUUID();
+
+        DoctorCompleteDTO doctorDTO = new DoctorCompleteDTO(
+                Genders.FEMALE, "", BigDecimal.valueOf(0.0)
+        );
+
+        when(doctorService.completeDoctor(userId, doctorDTO)).thenReturn(null);
+
+        mockMvc.perform(put("/doc/{id}/complete_profile", userId))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
