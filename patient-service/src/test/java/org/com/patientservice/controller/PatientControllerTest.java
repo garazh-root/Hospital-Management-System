@@ -181,9 +181,9 @@ public class PatientControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(patientCompleteDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.gender").value(patientCompleteDTO.gender().toString()))
-                .andExpect(jsonPath("$.weight").value(patientCompleteDTO.weight()))
-                .andExpect(jsonPath("$.height").value(patientCompleteDTO.height()));
+                .andExpect(jsonPath("$.gender").value(responseDTO.getGender()))
+                .andExpect(jsonPath("$.weight").value(responseDTO.getWeight()))
+                .andExpect(jsonPath("$.height").value(responseDTO.getHeight()));
 
         verify(patientService).completeFullPatientProfile(patientId, patientCompleteDTO);
     }

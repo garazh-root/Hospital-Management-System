@@ -11,6 +11,7 @@ import org.com.patientservice.kafka.KafkaProducer;
 import org.com.patientservice.model.Patient;
 import org.com.patientservice.model.genders.Gender;
 import org.com.patientservice.repository.PatientRepository;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -200,6 +201,12 @@ public class PatientServiceTest {
         assertThat(responseDTO.getHeight()).isEqualTo(patient.getHeight().toString());
 
         verify(patientRepository).findById(patientId);
+    }
+
+    @Test
+    void completePatientShouldThrowExceptionWhenPatientNotFound() {
+
+        Assertions.assertThrows(PatientNotFoundException.class, () -> patientService.completeFullPatientProfile(UUID.randomUUID(), null));
     }
 
     @Test
