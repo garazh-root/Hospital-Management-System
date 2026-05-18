@@ -58,6 +58,7 @@ public class DoctorController {
     }
 
     @PutMapping("/{id}/complete_profile")
+    @Operation(summary = "Complete doctor profile with extra info")
     public ResponseEntity<DoctorResponseDTO> completeDoctorProfile(
             @PathVariable UUID id, @RequestBody DoctorCompleteDTO doctorCompleteDTO) {
         DoctorResponseDTO response = doctorService.completeDoctor(id, doctorCompleteDTO);
