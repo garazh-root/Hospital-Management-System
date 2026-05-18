@@ -29,9 +29,17 @@ public class Meeting {
     @NotNull
     private UUID doctorId;
 
+    @Field(name = "doctor_email")
+    @NotNull
+    private String doctorEmail;
+
     @Field(name = "patient_id")
     @NotNull
     private UUID patientId;
+
+    @Field(name = "patient_email")
+    @NotNull
+    private String patientEmail;
 
     @Field(name = "meeting_date_time")
     @NotNull
