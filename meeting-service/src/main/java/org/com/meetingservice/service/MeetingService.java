@@ -3,6 +3,7 @@ package org.com.meetingservice.service;
 import org.com.meetingservice.additional.MeetingStatus;
 import org.com.meetingservice.client.DoctorClient;
 import org.com.meetingservice.dto.AvailableSlotResponse;
+import org.com.meetingservice.dto.DoctorResponseDTO;
 import org.com.meetingservice.dto.ScheduleResponse;
 import org.com.meetingservice.dto.MeetingResponse;
 import org.com.meetingservice.events.MeetingBookedEvent;
@@ -55,7 +56,11 @@ public class MeetingService {
         return slotGeneratorService.generateAvailableSlots(doctorScheduleDataResponse, date, bookedMeetings);
     }
 
-    public MeetingResponse bookMeeting(MeetingRequest meetingRequest) {
+    public MeetingResponse bookMeeting(String userId, String userEmail, MeetingRequest meetingRequest) {
+        DoctorResponseDTO dto = doctorClient.getDoctorEmail(meetingRequest.doctorId().toString());
+
+        String doctorEmail = dto.email();
+
         LocalDate date = meetingRequest.meetingDateTime().toLocalDate();
 
         List<AvailableSlotResponse> availableSlots = getAvailableSlots(meetingRequest.doctorId().toString(), date);
@@ -71,12 +76,14 @@ public class MeetingService {
 
         Meeting meeting = Meeting.builder()
                 .doctorId(meetingRequest.doctorId())
+                .doctorEmail(doctorEmail)
                 .patientId(meetingRequest.patientId())
+                .patientEmail(userEmail)
                 .meetingDateTime(meetingRequest.meetingDateTime().toInstant(UTC))
                 .durationOfMinutes(meetingRequest.duration())
                 .status(MeetingStatus.CONFIRMED)
                 .reason(meetingRequest.reason())
-                .notes("Regular checkup")
+                .notes(meetingRequest.notes())
                 .build();
 
         Meeting savedMeeting = meetingRepository.save(meeting);
@@ -84,7 +91,9 @@ public class MeetingService {
         MeetingBookedEvent bookedEvent = new MeetingBookedEvent(
                 savedMeeting.getId(),
                 savedMeeting.getDoctorId(),
+                savedMeeting.getDoctorEmail(),
                 savedMeeting.getPatientId(),
+                savedMeeting.getPatientEmail(),
                 savedMeeting.getMeetingDateTime(),
                 savedMeeting.getDurationOfMinutes(),
                 savedMeeting.getStatus(),
@@ -123,8 +132,10 @@ public class MeetingService {
         MeetingCancelledEvent canceledEvent = new MeetingCancelledEvent(
                 meeting.getId(),
                 meeting.getPatientId(),
+                meeting.getPatientEmail(),
                 meeting.getDoctorId(),
-                Instant.now()
+                meeting.getDoctorEmail(),
+                meeting.getMeetingDateTime()
         );
 
         kafkaProducer.sendCancelMeeting(canceledEvent);
@@ -141,7 +152,9 @@ public class MeetingService {
         MeetingCompletedEvent completedEvent = new MeetingCompletedEvent(
                 meeting.getId(),
                 meeting.getPatientId(),
+                meeting.getPatientEmail(),
                 meeting.getDoctorId(),
+                meeting.getDoctorEmail(),
                 Instant.now()
         );
 
