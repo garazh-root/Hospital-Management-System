@@ -9,7 +9,8 @@ public record MeetingRequest(
         UUID patientId,
         LocalDateTime meetingDateTime,
         Integer duration,
-        String reason) {
+        String reason,
+        String notes) {
 
     public MeetingRequest{
         if(doctorId == null || patientId == null) {
