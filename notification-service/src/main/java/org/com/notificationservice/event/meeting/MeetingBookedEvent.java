@@ -9,8 +9,10 @@ import java.util.UUID;
 public record MeetingBookedEvent(
         String meetingId,
         UUID doctorId,
+        String doctorEmail,
         UUID patientId,
-        LocalDateTime dateTime,
+        String patientEmail,
+        Instant dateTime,
         int durationOfMinutes,
         MeetingStatus meetingStatus,
         Instant occurredAt

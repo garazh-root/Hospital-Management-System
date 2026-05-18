@@ -6,7 +6,9 @@ import java.util.UUID;
 public record MeetingCancelledEvent(
         String meetingId,
         UUID patientId,
+        String patientEmail,
         UUID doctorId,
-        Instant occurredAt
+        String doctorEmail,
+        Instant dateTime
 ) {
 }
