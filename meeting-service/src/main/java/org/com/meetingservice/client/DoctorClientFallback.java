@@ -1,6 +1,7 @@
 package org.com.meetingservice.client;
 
 import lombok.extern.slf4j.Slf4j;
+import org.com.meetingservice.dto.DoctorResponseDTO;
 import org.com.meetingservice.dto.ScheduleResponse;
 import org.com.meetingservice.exception.ServiceUnavailableException;
 import org.com.meetingservice.messages.MeetingServiceMessages;
@@ -14,6 +15,11 @@ public class DoctorClientFallback implements DoctorClient {
 
     public ScheduleResponse getSchedulesData(String doctorId, LocalDate startDate, LocalDate endDate) {
         log.error("Operation failed");
+        throw new ServiceUnavailableException(MeetingServiceMessages.SERVICE_UNAVAILABLE.getMessage());
+    }
+
+    public DoctorResponseDTO getDoctorEmail(String doctorId) {
+        log.error("Operation failed for doctor data extraction");
         throw new ServiceUnavailableException(MeetingServiceMessages.SERVICE_UNAVAILABLE.getMessage());
     }
 }

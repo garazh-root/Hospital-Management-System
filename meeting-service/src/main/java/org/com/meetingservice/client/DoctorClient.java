@@ -1,9 +1,11 @@
 package org.com.meetingservice.client;
 
+import org.com.meetingservice.dto.DoctorResponseDTO;
 import org.com.meetingservice.dto.ScheduleResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
@@ -19,4 +21,7 @@ public interface DoctorClient {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
             );
+
+    @GetMapping("/doc/{id}")
+    DoctorResponseDTO getDoctorEmail(@PathVariable String id);
 }
