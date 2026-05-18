@@ -37,8 +37,11 @@ public class MeetingController {
 
     @PostMapping
     @Operation(summary = "Book a meeting")
-    public ResponseEntity<MeetingResponse> bookMeeting(@RequestBody MeetingRequest meetingRequest) {
-        MeetingResponse meetingResponse = meetingService.bookMeeting(meetingRequest);
+    public ResponseEntity<MeetingResponse> bookMeeting(
+            @RequestHeader("X-User-Id") String patientId,
+            @RequestHeader("X-User-Email") String userEmail,
+            @RequestBody MeetingRequest meetingRequest) {
+        MeetingResponse meetingResponse = meetingService.bookMeeting(patientId, userEmail, meetingRequest);
         return ResponseEntity.ok().body(meetingResponse);
     }
 
