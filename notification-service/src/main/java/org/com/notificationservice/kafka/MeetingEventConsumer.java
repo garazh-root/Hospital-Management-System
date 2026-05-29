@@ -2,6 +2,7 @@ package org.com.notificationservice.kafka;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.com.notificationservice.additional.Roles;
 import org.com.notificationservice.event.meeting.MeetingBookedEvent;
 import org.com.notificationservice.event.meeting.MeetingCancelledEvent;
 import org.com.notificationservice.event.meeting.MeetingCompletedEvent;
@@ -25,8 +26,8 @@ public class MeetingEventConsumer {
 
     @KafkaHandler
     public void onMeetingBooked(MeetingBookedEvent event) {
-        emailService.sendBookingEmail(event.patientEmail(), username, event.dateTime(), event.durationOfMinutes());
-        emailService.sendBookingEmail(event.doctorEmail(), username, event.dateTime(), event.durationOfMinutes());
+        emailService.sendBookingEmail(event.patientEmail(), username, event.doctorFirstName(), event.doctorLastName(), Roles.PATIENT, event.dateTime(), event.durationOfMinutes());
+        emailService.sendBookingEmail(event.doctorEmail(), username, event.doctorFirstName(), event.doctorLastName(), Roles.DOCTOR, event.dateTime(), event.durationOfMinutes());
         log.info("Meeting Booked Successfully for date/time {}",  event.dateTime());
     }
 
