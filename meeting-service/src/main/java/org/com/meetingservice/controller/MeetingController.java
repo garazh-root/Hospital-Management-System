@@ -3,6 +3,7 @@ package org.com.meetingservice.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.com.meetingservice.additional.MeetingStatus;
+import org.com.meetingservice.additional.Roles;
 import org.com.meetingservice.dto.AvailableSlotResponse;
 import org.com.meetingservice.dto.MeetingResponse;
 import org.com.meetingservice.requests.MeetingRequest;
@@ -39,9 +40,10 @@ public class MeetingController {
     @Operation(summary = "Book a meeting")
     public ResponseEntity<MeetingResponse> bookMeeting(
             @RequestHeader("X-User-Id") String patientId,
-            @RequestHeader("X-User-Email") String userEmail,
+            @RequestHeader("X-User-Email") String patientEmail,
+            @RequestHeader("X-User-Role") Roles role,
             @RequestBody MeetingRequest meetingRequest) {
-        MeetingResponse meetingResponse = meetingService.bookMeeting(patientId, userEmail, meetingRequest);
+        MeetingResponse meetingResponse = meetingService.bookMeeting(patientId, patientEmail, role, meetingRequest);
         return ResponseEntity.ok().body(meetingResponse);
     }
 
