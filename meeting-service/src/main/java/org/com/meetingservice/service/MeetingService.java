@@ -1,6 +1,7 @@
 package org.com.meetingservice.service;
 
 import org.com.meetingservice.additional.MeetingStatus;
+import org.com.meetingservice.additional.Roles;
 import org.com.meetingservice.client.DoctorClient;
 import org.com.meetingservice.dto.AvailableSlotResponse;
 import org.com.meetingservice.dto.DoctorResponseDTO;
@@ -56,10 +57,10 @@ public class MeetingService {
         return slotGeneratorService.generateAvailableSlots(doctorScheduleDataResponse, date, bookedMeetings);
     }
 
-    public MeetingResponse bookMeeting(String userId, String userEmail, MeetingRequest meetingRequest) {
-        DoctorResponseDTO dto = doctorClient.getDoctorEmail(meetingRequest.doctorId().toString());
+    public MeetingResponse bookMeeting(String userId, String userEmail, Roles role, MeetingRequest meetingRequest) {
+        DoctorResponseDTO doctorResponseDTO = doctorClient.getDoctorEmail(meetingRequest.doctorId().toString());
 
-        String doctorEmail = dto.email();
+        String doctorEmail = doctorResponseDTO.email();
 
         LocalDate date = meetingRequest.meetingDateTime().toLocalDate();
 
@@ -91,9 +92,12 @@ public class MeetingService {
         MeetingBookedEvent bookedEvent = new MeetingBookedEvent(
                 savedMeeting.getId(),
                 savedMeeting.getDoctorId(),
+                doctorResponseDTO.firstName(),
+                doctorResponseDTO.lastName(),
                 savedMeeting.getDoctorEmail(),
                 savedMeeting.getPatientId(),
                 savedMeeting.getPatientEmail(),
+                role,
                 savedMeeting.getMeetingDateTime(),
                 savedMeeting.getDurationOfMinutes(),
                 savedMeeting.getStatus(),
