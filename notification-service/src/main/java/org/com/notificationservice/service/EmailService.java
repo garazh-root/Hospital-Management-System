@@ -23,7 +23,7 @@ public class EmailService {
 
         message.setTo(to);
         message.setFrom(username);
-        message.setSubject("Welcome to HealthApp!");
+        message.setSubject("Welcome message from UHealth app!");
 
         String body = role.equals(Roles.DOCTOR)
                 ? "Welcome Dr. " + username + ", your account is ready."
@@ -34,19 +34,36 @@ public class EmailService {
         mailSender.send(message);
     }
 
-    public void sendBookingEmail(String to, String username, Instant dateTime, int durationOfMinutes) {
+    public void sendBookingEmail(String to, String username, String doctorFirstName, String doctorLastName, Roles role, Instant dateTime, int durationOfMinutes) {
         SimpleMailMessage message = new SimpleMailMessage();
 
         message.setTo(to);
         message.setFrom(username);
-        message.setSubject("Your meeting has been booked!");
+        message.setSubject("Appointment confirmation - UHealth");
 
         LocalDateTime displayTime = LocalDateTime.ofInstant(dateTime, ZoneId.systemDefault());
 
-        String body = "Greetings from HealthApp!\n" +
-                "Meeting time : " + displayTime + "\n" +
-                "Durations of minutes : " + durationOfMinutes + "\n" +
-                "Have a nice day!";
+        String body = role.equals(Roles.PATIENT)
+                ? "Dear Patient, \n" +
+                "\n" +
+                "Your appointment has been successfully booked. \n" +
+                "\n" +
+                "Doctor Dr : " + " " + doctorFirstName + " " + doctorLastName + "\n" +
+                "Date/Time : " + displayTime + "\n" +
+                "Duration : " + durationOfMinutes + " minutes" + "\n" +
+                "\n" +
+                "Have a healthy day!" + "\n" +
+                "UHealth team."
+
+                : "Dear Doctor, \n" +
+                  "\n" +
+                  "Appointment has been successfully booked. \n" +
+                  "\n" +
+                  "Date/Time : " + displayTime + "\n" +
+                  "Duration : " + durationOfMinutes + " minutes" + "\n" +
+                  "\n" +
+                  "Have a healthy day!" + "\n" +
+                  "UHealth team.";
 
         message.setText(body);
 
