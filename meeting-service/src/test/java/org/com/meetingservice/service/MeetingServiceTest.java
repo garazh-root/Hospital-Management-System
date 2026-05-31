@@ -1,7 +1,7 @@
 package org.com.meetingservice.service;
 
-import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.com.meetingservice.additional.MeetingStatus;
+import org.com.meetingservice.additional.Roles;
 import org.com.meetingservice.client.DoctorClient;
 import org.com.meetingservice.dto.AvailableSlotResponse;
 import org.com.meetingservice.dto.MeetingResponse;
@@ -50,15 +50,23 @@ public class MeetingServiceTest {
 
     private UUID doctorId;
     private UUID patientId;
+    private String userEmail;
+    private org.com.meetingservice.additional.Roles role;
+    private UUID userId;
     private Instant date;
     private ScheduleResponse scheduleResponse;
+    private org.com.meetingservice.dto.DoctorResponseDTO  doctorResponseDTO;
 
     @BeforeEach
     void setUp() {
         doctorId = UUID.randomUUID();
         patientId = UUID.randomUUID();
+        userId = UUID.randomUUID();
+        userEmail = "test@gmail.com";
+        role = Roles.PATIENT;
         date = LocalDateTime.of(2026, 3, 26, 9, 0, 0).atZone(ZoneId.of("UTC")).toInstant();
         scheduleResponse = mock(ScheduleResponse.class);
+        doctorResponseDTO = mock(org.com.meetingservice.dto.DoctorResponseDTO.class);
     }
 
     @Test
@@ -107,7 +115,9 @@ public class MeetingServiceTest {
     @Test
     void bookMeetingShouldSaveMeetingAndReturnMeetingResponse() {
         LocalDateTime dateTime = LocalDateTime.of(date.atZone(ZoneId.of("UTC")).toLocalDate(), LocalTime.of(10, 0));
-        MeetingRequest request = new MeetingRequest(doctorId, patientId, dateTime, 30, "Regular checkup");
+        MeetingRequest request = new MeetingRequest(doctorId, patientId, dateTime, 30, "Regular checkup", "Monthly checkup");
+
+        when(doctorClient.getDoctorEmail(request.doctorId().toString())).thenReturn(doctorResponseDTO);
 
         AvailableSlotResponse slotResponse = new AvailableSlotResponse("2026-03-26", "10:00", "10:30", "30");
 
@@ -121,7 +131,7 @@ public class MeetingServiceTest {
 
         when(meetingRepository.save(argumentCaptor.capture())).thenAnswer(i -> i.getArgument(0));
 
-        MeetingResponse response = meetingService.bookMeeting(request);
+        MeetingResponse response = meetingService.bookMeeting(userId.toString(), userEmail, role, request);
 
         Meeting meeting = argumentCaptor.getValue();
         assertThat(meeting.getDoctorId()).isEqualTo(doctorId);
@@ -131,7 +141,9 @@ public class MeetingServiceTest {
     @Test
     void bookMeetingShouldThrowExceptionWhenSlotIsNotAvailable() {
         LocalDateTime dateTime = LocalDateTime.of(date.atZone(ZoneId.of("UTC")).toLocalDate(), LocalTime.of(10, 0));
-        MeetingRequest request = new MeetingRequest(doctorId, patientId, dateTime, 30, "Regular checkup");
+        MeetingRequest request = new MeetingRequest(doctorId, patientId, dateTime, 30, "Regular checkup", "Monthly checkup");
+
+        when(doctorClient.getDoctorEmail(request.doctorId().toString())).thenReturn(doctorResponseDTO);
 
         AvailableSlotResponse slotResponse = new AvailableSlotResponse("2026-03-26", "08:30", "09:00", "30");
 
@@ -141,7 +153,7 @@ public class MeetingServiceTest {
         when(slotGeneratorService.generateAvailableSlots(any(ScheduleResponse.class), eq(date.atZone(ZoneId.of("UTC")).toLocalDate()), anyList()))
                 .thenReturn(List.of(slotResponse));
 
-        assertThatThrownBy(() -> meetingService.bookMeeting(request)).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> meetingService.bookMeeting(userId.toString(), userEmail, role, request)).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
