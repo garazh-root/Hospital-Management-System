@@ -1,6 +1,7 @@
 package org.com.meetingservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.com.meetingservice.additional.Roles;
 import org.com.meetingservice.dto.AvailableSlotResponse;
 import org.com.meetingservice.dto.MeetingResponse;
 import org.com.meetingservice.requests.MeetingRequest;
@@ -47,11 +48,17 @@ public class MeetingControllerTest {
 
     private UUID doctorId;
     private UUID patientId;
+    private UUID userId;
+    private String userEmail;
+    private org.com.meetingservice.additional.Roles role;
 
     @BeforeEach
     void setUp() {
         doctorId = UUID.randomUUID();
         patientId = UUID.randomUUID();
+        userId = UUID.randomUUID();
+        userEmail = "test@gmail.com";
+        role = Roles.PATIENT;
     }
 
     @Test
@@ -86,7 +93,7 @@ public class MeetingControllerTest {
         MeetingRequest request = new MeetingRequest(
                 doctorId, patientId,
                 LocalDateTime.of(2026, 6, 1, 9, 0),
-                30, "Checkup"
+                30, "Checkup",  "Monthly checkup"
         );
 
         MeetingResponse meetingResponse = new MeetingResponse(
@@ -94,10 +101,13 @@ public class MeetingControllerTest {
                 "2026-06-01T09:00", "30", "CONFIRMED", "test"
         );
 
-        when(meetingService.bookMeeting(any(MeetingRequest.class))).thenReturn(meetingResponse);
+        when(meetingService.bookMeeting(any(), any(), any(), any(MeetingRequest.class))).thenReturn(meetingResponse);
 
         mockMvc.perform(post("/meeting")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-User-ID", userId.toString())
+                        .header("X-User-Email", userEmail)
+                        .header("X-User-Role", role.toString())
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.doctorId").value(doctorId.toString()))
@@ -109,10 +119,10 @@ public class MeetingControllerTest {
         MeetingRequest request = new MeetingRequest(
                 doctorId, patientId,
                 LocalDateTime.of(2026, 6, 1, 9, 0),
-                30, "Checkup"
+                30, "Checkup",   "Monthly checkup"
         );
 
-        when(meetingService.bookMeeting(any(MeetingRequest.class))).thenThrow(new IllegalStateException("Slot is unavailable"));
+        when(meetingService.bookMeeting(any(), any(), any(), any(MeetingRequest.class))).thenThrow(new IllegalStateException("Slot is unavailable"));
 
         mockMvc.perform(post("/meeting")
                         .contentType(MediaType.APPLICATION_JSON)
