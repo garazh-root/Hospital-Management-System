@@ -56,6 +56,9 @@ public class Doctor {
     @Column(name = "doctor_status")
     private DoctorStatus doctorStatus;
 
+    @Column(name = "total_rating")
+    private int totalRating;
+
     @Column(name = "created_at")
     private LocalTime createdAt;
 

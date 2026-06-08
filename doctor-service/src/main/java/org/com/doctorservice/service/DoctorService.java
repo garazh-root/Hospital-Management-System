@@ -18,6 +18,8 @@ import org.com.doctorservice.messages.DoctorServiceMessages;
 import org.com.doctorservice.model.Doctor;
 import org.com.doctorservice.additional.Genders;
 import org.com.doctorservice.repository.DoctorRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
@@ -141,6 +143,13 @@ public class DoctorService {
         kafkaProducer.sendPatientStatusUpdated(changedStatusEvent);
 
         return DoctorMapper.toResponseDTO(doctor);
+    }
+
+    public List<DoctorResponseDTO> findTopRatedDoctors(int limit) {
+        return doctorRepository.findAllByOrderByRatingDesc(PageRequest.of(0, limit))
+                .stream()
+                .map(DoctorMapper::toResponseDTO)
+                .toList();
     }
 
     private List<DoctorResponseDTO> mapList(List<Doctor> doctors){

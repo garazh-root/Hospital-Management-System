@@ -59,6 +59,15 @@ public class Meeting {
     @Field(name = "notes")
     private String notes;
 
+    @Field(name = "rating")
+    private Integer rating;
+
+    @Field(name = "comment")
+    private String comment;
+
+    @Field(name = "rated_at")
+    private Instant ratedAt;
+
     @CreatedDate
     @Field(name = "created_at")
     private Instant createdAt;

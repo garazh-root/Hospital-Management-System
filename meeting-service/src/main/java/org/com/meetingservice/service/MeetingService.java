@@ -1,5 +1,6 @@
 package org.com.meetingservice.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.com.meetingservice.additional.MeetingStatus;
 import org.com.meetingservice.additional.Roles;
 import org.com.meetingservice.client.DoctorClient;
@@ -10,6 +11,8 @@ import org.com.meetingservice.dto.MeetingResponse;
 import org.com.meetingservice.events.MeetingBookedEvent;
 import org.com.meetingservice.events.MeetingCancelledEvent;
 import org.com.meetingservice.events.MeetingCompletedEvent;
+import org.com.meetingservice.events.MeetingRatedEvent;
+import org.com.meetingservice.exception.MeetingNotCompletedException;
 import org.com.meetingservice.exception.MeetingNotFoundException;
 import org.com.meetingservice.kafka.KafkaProducer;
 import org.com.meetingservice.mapper.MeetingMapper;
@@ -17,6 +20,7 @@ import org.com.meetingservice.messages.MeetingServiceMessages;
 import org.com.meetingservice.model.Meeting;
 import org.com.meetingservice.repository.MeetingRepository;
 import org.com.meetingservice.requests.MeetingRequest;
+import org.com.meetingservice.requests.RatingRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.*;
@@ -26,6 +30,7 @@ import java.util.UUID;
 import static java.time.ZoneOffset.UTC;
 
 @Service
+@Slf4j
 public class MeetingService {
     private MeetingRepository meetingRepository;
     private SlotGeneratorService slotGeneratorService;
@@ -80,7 +85,7 @@ public class MeetingService {
                 .doctorEmail(doctorEmail)
                 .patientId(meetingRequest.patientId())
                 .patientEmail(userEmail)
-                .meetingDateTime(meetingRequest.meetingDateTime().toInstant(UTC))
+                .meetingDateTime(meetingRequest.meetingDateTime().toInstant())
                 .durationOfMinutes(meetingRequest.duration())
                 .status(MeetingStatus.CONFIRMED)
                 .reason(meetingRequest.reason())
@@ -169,13 +174,45 @@ public class MeetingService {
 
     public void autoCompleteMeeting() {
         Instant now = Instant.now();
+        log.info("Checking for expired meetings at {}", now);
 
         meetingRepository.findByStatus(MeetingStatus.CONFIRMED)
                 .stream()
+                .peek(m -> log.info("Meeting {} ends at {}, now is {}, expired: {}",
+                        m.getId(),
+                        m.getMeetingDateTime().plusSeconds(m.getDurationOfMinutes() * 60L),
+                        now,
+                        m.getMeetingDateTime().plusSeconds(m.getDurationOfMinutes() * 60L).isBefore(now)))
                 .filter(m -> m.getMeetingDateTime()
                         .plusSeconds(m.getDurationOfMinutes() * 60L)
                         .isBefore(now))
                 .forEach(m -> completeMeeting(m.getId()));
+    }
+
+    public void rateMeeting(String meetingId, String patientId, RatingRequest ratingRequest) {
+        Meeting meeting = meetingRepository.findById(meetingId).orElseThrow(
+                () -> new MeetingNotFoundException(MeetingServiceMessages.MEETING_NOT_FOUND.getMessage()));
+
+        if(meeting.getStatus() != MeetingStatus.COMPLETED) {
+            throw new MeetingNotCompletedException(MeetingServiceMessages.MEETING_NOT_COMPLETED.getMessage());
+        }
+
+        if(meeting.getRating() != null) {
+            throw new IllegalStateException(MeetingServiceMessages.MEETING_ALREADY_RATED.getMessage());
+        }
+
+        meeting.setRating(ratingRequest.rating());
+        meeting.setComment(ratingRequest.comment());
+        meeting.setRatedAt(Instant.now());
+
+        meetingRepository.save(meeting);
+
+        MeetingRatedEvent ratedEvent = new MeetingRatedEvent(
+                meeting.getId(), meeting.getDoctorId(), meeting.getPatientId(), meeting.getRating(),
+                meeting.getComment(), meeting.getRatedAt()
+        );
+
+        kafkaProducer.sendMeetingRated(ratedEvent);
     }
 
     public List<MeetingResponse> mapList(List<Meeting> meetings) {

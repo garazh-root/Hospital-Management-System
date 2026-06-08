@@ -2,6 +2,8 @@ package org.com.doctorservice.repository;
 
 import org.com.doctorservice.model.Doctor;
 import org.com.doctorservice.additional.Genders;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,4 +16,5 @@ public interface DoctorRepository extends JpaRepository<Doctor, UUID> {
     List<Doctor> findDoctorsByGender(Genders gender);
     boolean existsByEmail(String email);
     boolean existsByEmailAndDoctorIdNot(String email, UUID id);
+    Page<Doctor> findAllByOrderByRatingDesc(Pageable pageable);
 }

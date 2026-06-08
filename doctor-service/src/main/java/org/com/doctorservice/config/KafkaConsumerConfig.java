@@ -27,7 +27,8 @@ public class KafkaConsumerConfig {
         props.put(JsonDeserializer.TYPE_MAPPINGS,
                 "userRegistered:org.com.doctorservice.events.UserRegisteredEvent," +
                         "doctorCreated:org.com.doctorservice.events.DoctorCreatedEvent," +
-                        "doctorChangedStatus:org.com.doctorservice.events.DoctorChangedStatusEvent");
+                        "doctorChangedStatus:org.com.doctorservice.events.DoctorChangedStatusEvent," +
+                        "meetingRated:org.com.doctorservice.events.MeetingRatedEvent");
 
         return new DefaultKafkaConsumerFactory<>(props);
     }

@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS doctor
     phone_number varchar(64) NOT NULL,
     specialization text,
     rating numeric(2,1) DEFAULT 0.0,
+    total_rating INTEGER NOT NULL DEFAULT 0,
     doctor_status varchar(32) NOT NULL
 );
 

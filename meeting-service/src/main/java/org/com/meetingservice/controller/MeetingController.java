@@ -7,6 +7,7 @@ import org.com.meetingservice.additional.Roles;
 import org.com.meetingservice.dto.AvailableSlotResponse;
 import org.com.meetingservice.dto.MeetingResponse;
 import org.com.meetingservice.requests.MeetingRequest;
+import org.com.meetingservice.requests.RatingRequest;
 import org.com.meetingservice.service.MeetingService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -84,5 +85,16 @@ public class MeetingController {
     public ResponseEntity<MeetingResponse> cancelMeeting(@PathVariable String meetingId) {
         meetingService.cancelMeeting(meetingId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{meetingId}/rate")
+    @Operation(summary = "Rate meeting, after patient visit")
+    public ResponseEntity<Void> rateMeeting(
+            @PathVariable String meetingId,
+            @RequestHeader("X-User-Id") String patientId,
+            @RequestBody RatingRequest ratingRequest
+            ) {
+        meetingService.rateMeeting(meetingId, patientId, ratingRequest);
+        return ResponseEntity.ok().build();
     }
 }
