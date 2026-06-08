@@ -27,7 +27,8 @@ public class KafkaProducerConfig {
         config.put(JsonSerializer.TYPE_MAPPINGS,
                 "meetingBooked:org.com.meetingservice.events.MeetingBookedEvent," +
                 "meetingCancelled:org.com.meetingservice.events.MeetingCancelledEvent," +
-                "meetingCompleted:org.com.meetingservice.events.MeetingCompletedEvent");
+                "meetingCompleted:org.com.meetingservice.events.MeetingCompletedEvent," +
+                "meetingRated:org.com.meetingservice.events.MeetingRatedEvent");
         config.put("spring.json.trusted.packages", "*");
 
         return new DefaultKafkaProducerFactory<>(config);

@@ -67,4 +67,13 @@ public class GlobalExceptionHandler {
         errors.put("message", ex.getMessage());
         return ResponseEntity.badRequest().body(errors);
     }
+
+    @ExceptionHandler(MeetingNotCompletedException.class)
+    public ResponseEntity<Map<String, String>> handleMeetingNotCompletedException(MeetingNotCompletedException ex) {
+        Map<String, String> errors = new HashMap<>();
+
+        log.warn("Meeting not completed, {}", ex.getMessage());
+        errors.put("message", ex.getMessage());
+        return ResponseEntity.badRequest().body(errors);
+    }
 }
