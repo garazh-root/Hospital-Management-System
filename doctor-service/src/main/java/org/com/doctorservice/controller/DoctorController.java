@@ -82,6 +82,7 @@ public class DoctorController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Update doctor status")
     @PatchMapping("{doctorId}/status")
     public ResponseEntity<DoctorResponseDTO> updateDoctorStatus(
             @PathVariable UUID doctorId,
@@ -90,5 +91,14 @@ public class DoctorController {
         DoctorResponseDTO response = doctorService.changeDoctorStatus(doctorId, doctorStatus);
 
         return ResponseEntity.ok().body(response);
+    }
+
+    @Operation(summary = "Get top rated doctors")
+    @GetMapping("/top-rated")
+    public ResponseEntity<List<DoctorResponseDTO>> findTopRatedDoctors(
+            @RequestParam(defaultValue = "10") int limit
+    ) {
+        List<DoctorResponseDTO> doctors = doctorService.findTopRatedDoctors(limit);
+        return ResponseEntity.ok().body(doctors);
     }
 }
