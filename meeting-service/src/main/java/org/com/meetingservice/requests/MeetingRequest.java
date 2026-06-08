@@ -2,12 +2,13 @@ package org.com.meetingservice.requests;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 public record MeetingRequest(
         UUID doctorId,
         UUID patientId,
-        LocalDateTime meetingDateTime,
+        ZonedDateTime meetingDateTime,
         Integer duration,
         String reason,
         String notes) {
