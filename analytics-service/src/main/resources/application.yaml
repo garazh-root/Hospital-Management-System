@@ -1,3 +1,10 @@
 spring:
   application:
     name: analytics-service
+
+server:
+  port: 1016
+
+logging:
+  level:
+    root: info
