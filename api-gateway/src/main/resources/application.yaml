@@ -40,6 +40,16 @@ spring:
              - RewritePath=/api/meetings/(?<segment>.*), /${segment}
              - JwtAuth
 
+         - id: analytics-service
+           uri: http://analytics-service:1016
+           predicates:
+             - Path=/api/analytics/**
+           filters:
+             - RewritePath=/api/analytics/(?<segment>.*), /analytics/${segment}
+             - name: JwtAuth
+               args:
+                 requiredRole: DOCTOR
+
 server:
   port: 1013
 
