@@ -16,6 +16,16 @@ spring:
            uri: http://patient-service:1010
            predicates:
              - Path=/api/patients/**
+             - Method=GET
+           filters:
+             - RewritePath=/api/patients/(?<segment>.*), /${segment}
+             - JwtAuth
+
+         - id: patient-service
+           uri: http://patient-service:1010
+           predicates:
+             - Path=/api/patients/**
+             - Method=POST,PUT,PATCH,DELETE
            filters:
              - RewritePath=/api/patients/(?<segment>.*), /${segment}
              - name: JwtAuth
@@ -26,6 +36,16 @@ spring:
            uri: http://doctor-service:1011
            predicates:
              - Path=/api/doctors/**
+             - Method=GET
+           filters:
+             - RewritePath=/api/doctors/(?<segment>.*), /${segment}
+             - JwtAuth
+
+         - id: doctor-service
+           uri: http://doctor-service:1011
+           predicates:
+             - Path=/api/doctors/**
+             - Method=POST,PUT,PATCH,DELETE
            filters:
              - RewritePath=/api/doctors/(?<segment>.*), /${segment}
              - name: JwtAuth
